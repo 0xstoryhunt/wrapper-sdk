@@ -1,0 +1,26 @@
+name: Publish to Github Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js (LTS)
+        uses: actions/setup-node@v2-beta
+      - uses: rahulshah63/github-token-action@latest
+        with:
+          registry: true
+      - name: Install
+        run: npm install --frozen-lockfile
+      - name: Test
+        run: npm run test
+      - name: Build
+        run: npm run build
+      - name: Publish to GitHub Package (unstable)
+        run: ./scripts/publish-to-github.sh

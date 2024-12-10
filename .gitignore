@@ -1,0 +1,10 @@
+*.log
+.env
+.DS_Store
+node_modules
+dist
+
+tsconfig.json
+tsup.config.ts
+
+coverage
