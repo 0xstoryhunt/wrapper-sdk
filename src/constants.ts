@@ -66,7 +66,6 @@ export const config = createConfig({
       appName: 'StoryHunt Dex',
     }),
   ],
-  //@ts-ignore
   transports: {
     [defaultChainId]: http(defaultChain.rpcUrls.default.http[0]),
   },
