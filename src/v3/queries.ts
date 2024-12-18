@@ -55,6 +55,7 @@ query Pool($token0: ID!, $token1: ID!) {
 }
 `;
 
+// query users pools
 export const USER_POSITIONS_QUERY = `
   query MyQuery($userId: Bytes!) {
     positions(where: { owner: $userId }, orderBy: liquidity, orderDirection: desc) {
@@ -133,6 +134,7 @@ export const USER_POSITIONS_QUERY = `
     }
   }
 `
+
 
 export const TOP_POOLS_QUERY = `
   query TopPools {
