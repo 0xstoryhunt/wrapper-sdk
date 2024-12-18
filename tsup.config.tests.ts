@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  format: ['esm', 'iife'],
+  format: ['esm'],
   entry: ['tests/src/index.test.ts'],
   outDir: './tests/dist',
   dts: false,

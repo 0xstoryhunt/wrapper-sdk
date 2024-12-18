@@ -1,0 +1,108 @@
+import * as STORYHUNT from '@uniswap/sdk-core';
+import { SwapRouter, Trade } from '@uniswap/v3-sdk';
+import JSBI from 'jsbi';
+import { writeContract } from 'viem/actions';
+
+import { ADDRESSES, defaultChain } from '../constants';
+import {
+  account,
+  walletClient,
+  getTokenBalance,
+  getAllowence,
+  estimateGasCost,
+} from '../utilsViem';
+import { formatUnits } from 'viem';
+
+const SWAPROUTER_MULTICALL_ABI = [
+  {
+    inputs: [
+      {
+        internalType: 'bytes[]',
+        name: 'data',
+        type: 'bytes[]',
+      },
+    ],
+    name: 'multicall',
+    outputs: [
+      {
+        internalType: 'bytes[]',
+        name: 'results',
+        type: 'bytes[]',
+      },
+    ],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+];
+
+export const v3swapViem = async (trade: Trade<any, any, any>) => {
+  try {
+    const address = account.address;
+    if (!address) {
+      throw new Error('No connected address found');
+    }
+
+    const tokenInAddress = trade.inputAmount.currency.address as `0x${string}`;
+    if (!tokenInAddress) {
+      throw new Error('Input token must have an address');
+    }
+
+    // Check balance
+    const tokenBalance = await getTokenBalance(tokenInAddress);
+    const formattedBalance = Number(
+      formatUnits(tokenBalance.value, tokenBalance.decimals)
+    );
+    const inputAmount = BigInt(trade.inputAmount.toFixed(0));
+    const requiredMinimum = BigInt(100); // Arbitrary minimum
+
+    if (
+      formattedBalance <
+        Number(formatUnits(requiredMinimum, tokenBalance.decimals)) ||
+      inputAmount > tokenBalance.value
+    ) {
+      throw new Error('Insufficient balance');
+    }
+
+    // Check allowance
+    const allowance = await getAllowence(tokenInAddress, ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`);
+    if (allowance < inputAmount) {
+      throw new Error('Insufficient allowance');
+    }
+
+    const methodParameters = SwapRouter.swapCallParameters(trade, {
+      slippageTolerance: new STORYHUNT.Percent(JSBI.BigInt(50), JSBI.BigInt(10000)), // 0.5%
+      deadline: JSBI.BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // 20 minutes from now
+      recipient: address,
+    });
+
+    // Estimate gas
+    const estimatedGas = await estimateGasCost({
+      address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+      abi: SWAPROUTER_MULTICALL_ABI,
+      functionName: 'multicall',
+      args: [[methodParameters.calldata]],
+      value: BigInt(methodParameters.value),
+    });
+
+    if (!estimatedGas) {
+      throw new Error('Failed to estimate gas');
+    }
+
+    // Execute the swap
+    const hash = await writeContract(walletClient, {
+      address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+      abi: SWAPROUTER_MULTICALL_ABI,
+      functionName: 'multicall',
+      args: [[methodParameters.calldata]],
+      value: BigInt(methodParameters.value),
+      gas: estimatedGas,
+      account: account,
+      chain: defaultChain
+    });
+
+    return hash;
+  } catch (error) {
+    console.error('Error in swap:', error);
+    return error;
+  }
+};

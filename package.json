@@ -20,7 +20,7 @@
         "test-jest": "jest --passWithNoTests --updateSnapshot --coverage --detectOpenHandles",
         "build": "npm run ts-check && npm run build-lib && npm run build-tests",
         "build-lib": "tsup --config ./tsup.config.lib.ts",
-        "test-esm": "node --experimental-vm-modules ./node_modules/.bin/jest",
+        "test-esm": "node --experimental-vm-modules ./node_modules/.bin/jest --verbose",
         "build-tests": "tsup --config ./tsup.config.tests.ts",
         "ts-check": "tsc --noEmit",
         "prettier-format": "prettier --write --no-error-on-unmatched-pattern \"./**/*\"",
