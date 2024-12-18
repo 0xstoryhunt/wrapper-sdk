@@ -64,10 +64,10 @@ describe('routing', () => {
 });
 
 describe('swap', () => {
-  test('should execute a successful swap from WIP (0.01) to FATE', async () => {
-    const tokenIn = ADDRESSES.TOKENS.WIP.id; 
-    const tokenOut = ADDRESSES.TOKENS.JUTSU.id;
-    const amountIn = BigInt(10 ** 16); // 0.01 WIP
+  test('should execute a successful swap from USDC (1.6) to IP', async () => {
+    const tokenIn = ADDRESSES.TOKENS.USDC.id; 
+    const tokenOut = ADDRESSES.TOKENS.IP.id;
+    const amountIn = BigInt(10 ** 5); // 1.6 USDC
 
     // Get a route for the swap
     const routes : Trade<Token, Token, any>[] | Error= await v3routingViem(tokenIn, tokenOut, amountIn, true);
@@ -92,10 +92,10 @@ describe('swap', () => {
   }, 60000); 
 
 
-  test('should execute a successful swap from WIP (0.1) to USDC', async () => {
+  test('should execute a successful swap from WIP (0.001) to JUTSU', async () => {
     const tokenIn = ADDRESSES.TOKENS.WIP.id; 
-    const tokenOut = ADDRESSES.TOKENS.USDC.id;
-    const amountIn = BigInt(10 ** 17); // 0.1 WIP
+    const tokenOut = ADDRESSES.TOKENS.JUTSU.id;
+    const amountIn = BigInt(10 ** 15); // 0.001 WIP
 
     // Get a route for the swap
     const routes : Trade<Token, Token, any>[] | Error= await v3routingViem(tokenIn, tokenOut, amountIn, true);

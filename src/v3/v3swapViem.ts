@@ -11,29 +11,9 @@ import {
   getAllowence,
   estimateGasCost,
 } from '../utilsViem';
-import { formatUnits } from 'viem';
 
-const SWAPROUTER_MULTICALL_ABI = [
-  {
-    inputs: [
-      {
-        internalType: 'bytes[]',
-        name: 'data',
-        type: 'bytes[]',
-      },
-    ],
-    name: 'multicall',
-    outputs: [
-      {
-        internalType: 'bytes[]',
-        name: 'results',
-        type: 'bytes[]',
-      },
-    ],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-];
+import { formatUnits } from 'viem';
+import { SWAPROUTER_MULTICALL_ABI } from './abi';
 
 export const v3swapViem = async (trade: Trade<any, any, any>) => {
   try {

@@ -6,6 +6,8 @@ import { erc20Abi } from 'viem';
 import { MaxUint256 } from '@uniswap/sdk-core';
 import { ADDRESSES, defaultChain } from './constants';
 import { readContract, writeContract } from 'viem/actions';
+import { TokenInfo } from './v3/types';
+
 
 const rpcUrl =
   defaultChain.rpcUrls.default.http[0] || 'https://odyssey.storyrpc.io';
@@ -140,3 +142,26 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
     return { value: balance, decimals };
   }
 };
+
+
+export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
+  const [decimals, symbol, name] = await Promise.all([
+    readContract(publicClient, {
+      address,
+      abi: erc20Abi,
+      functionName: 'decimals',
+    }) as Promise<number>,
+    readContract(publicClient, {
+      address,
+      abi: erc20Abi,
+      functionName: 'symbol',
+    }) as Promise<string>,
+    readContract(publicClient, {
+      address,
+      abi: erc20Abi,
+      functionName: 'name',
+    }) as Promise<string>,
+  ]);
+
+  return { decimals, symbol, name };
+}

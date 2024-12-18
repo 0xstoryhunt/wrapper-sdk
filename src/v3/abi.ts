@@ -2216,3 +2216,26 @@ export const WIP_ABI = [
     type: 'receive',
   },
 ] as const;
+
+
+export const SWAPROUTER_MULTICALL_ABI = [
+  {
+    inputs: [
+      {
+        internalType: 'bytes[]',
+        name: 'data',
+        type: 'bytes[]',
+      },
+    ],
+    name: 'multicall',
+    outputs: [
+      {
+        internalType: 'bytes[]',
+        name: 'results',
+        type: 'bytes[]',
+      },
+    ],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+];

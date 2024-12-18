@@ -10,28 +10,8 @@ import { config } from '../constants';
 import * as STORYHUNT from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 import { ADDRESSES } from '../constants';
+import { SWAPROUTER_MULTICALL_ABI } from './abi';
 
-const SWAPROUTER_MULTICALL_ABI = [
-  {
-    inputs: [
-      {
-        internalType: 'bytes[]',
-        name: 'data',
-        type: 'bytes[]',
-      },
-    ],
-    name: 'multicall',
-    outputs: [
-      {
-        internalType: 'bytes[]',
-        name: 'results',
-        type: 'bytes[]',
-      },
-    ],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-];
 
 export const v3swap = async (trade: Trade<any, any, any>) => {
   try {
