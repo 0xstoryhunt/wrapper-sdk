@@ -1,41 +1,20 @@
 import 'dotenv/config';
-import {  encodeFunctionData, WalletClient } from 'viem';
-import { createPublicClient, createWalletClient, http } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import {  Account, Address, Chain, encodeFunctionData, WalletClient } from 'viem';
 import { erc20Abi } from 'viem';
 import { MaxUint256 } from '@uniswap/sdk-core';
 import { ADDRESSES, defaultChain } from './constants';
 import { readContract, writeContract } from 'viem/actions';
+import { getPublicClient, getWriteClient, getAccountAddress, getAccount } from './config';
 import { TokenInfo } from './v3/types';
+import { ethers } from 'ethers';
 
-
-const rpcUrl =
-  defaultChain.rpcUrls.default.http[0] || 'https://odyssey.storyrpc.io';
-const privateKey = process.env.TEST_PRIVATE_KEY as `0x${string}`;
-
-if (!privateKey) {
-  throw new Error('TEST_PRIVATE_KEY not set in .env');
-}
-
-export const account = privateKeyToAccount(privateKey);
-
-export const publicClient = createPublicClient({
-  chain: defaultChain, // Adjust if you need a different chain
-  transport: http(rpcUrl),
-});
-
-export const walletClient: WalletClient = createWalletClient({
-  chain: defaultChain,
-  transport: http(rpcUrl),
-  account,
-});
 
 interface GasParams {
   address: `0x${string}`;
   abi: any[];
   functionName: string;
-  args?: unknown[];
-  value?: bigint;
+  args: unknown[];
+  value: bigint;
 }
 
 /**
@@ -46,20 +25,25 @@ export const estimateGasCost = async (
   gasPercentage = BigInt(100)
 ): Promise<bigint | undefined> => {
   try {
-    const data = encodeFunctionData({
-      abi: gasParams.abi,
-      functionName: gasParams.functionName,
-      args: gasParams.args || [],
+    const publicClient = getPublicClient();
+    const data = encodeFunctionData(gasParams);
+    const address = getAccountAddress();
+    const estimatedGas = await publicClient?.request({
+      method: 'eth_estimateGas',
+      params: [
+        {
+          from: address as `0x${string}`,
+          to: gasParams.address as `0x${string}`,
+          data,
+          value: `0x${gasParams.value.toString(16)}`,
+        },
+      ],
     });
 
-    const estimatedGas = await publicClient.estimateGas({
-      to: gasParams.address,
-      data,
-      value: gasParams.value && gasParams.value > BigInt(0) ? gasParams.value : undefined,
-      account: account,
-    });
+    const adjustedGas = estimatedGas
+      ? (BigInt(estimatedGas) * gasPercentage) / BigInt(100)
+      : undefined;
 
-    const adjustedGas = (estimatedGas * gasPercentage) / BigInt(100);
     return adjustedGas;
   } catch (error) {
     console.error('Error estimating gas:', error);
@@ -69,25 +53,36 @@ export const estimateGasCost = async (
 
 /**
  * Approves a spender to use a certain amount of tokens on behalf of the user's account.
+ * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
  */
 export const tokenApproval = async (
   token: string,
   spender: string,
   amount: bigint = BigInt(MaxUint256.toString())
 ) => {
-  try {
-    const hash = await writeContract(walletClient, {
-      address: token as `0x${string}`,
-      abi: erc20Abi,
-      functionName: 'approve',
-      args: [spender as `0x${string}`, amount],
-      chain: defaultChain,
-      account: account
-    });
-    return hash;
-  } catch (error) {
-    console.error('Error approving token:', error);
-    throw error;
+  const writeClient = getWriteClient();
+  const account = getAccount();
+  if (!account) {
+    throw new Error('No connected account found.');
+  }
+
+  const params = {
+    address: token as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'approve',
+    args: [spender as `0x${string}`, amount],
+    chain: defaultChain
+  };
+
+  // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
+  const result = await universalWriteContract(writeClient, params);
+  // If needed, check result type and normalize:
+  if (typeof result === 'string') {
+    console.log('Transaction hash (viem):', result);
+    return result;
+  } else {
+    console.log('Transaction hash (ethers):', result.hash);
+    return result.hash;
   }
 };
 
@@ -95,7 +90,9 @@ export const tokenApproval = async (
  * Retrieves the allowance of a token for a given spender.
  */
 export const getAllowence = async (token: string, spender: string) => {
-  if (!account.address) {
+  const publicClient = getPublicClient();
+  const account = getAccountAddress();
+  if (!account) {
     throw new Error('No connected address found');
   }
 
@@ -103,7 +100,7 @@ export const getAllowence = async (token: string, spender: string) => {
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: 'allowance',
-    args: [account.address as `0x${string}`, spender as `0x${string}`],
+    args: [account as `0x${string}`, spender as `0x${string}`],
   })) as bigint;
 };
 
@@ -112,13 +109,15 @@ export const getAllowence = async (token: string, spender: string) => {
  * it returns the native balance. Otherwise, it returns the ERC-20 token balance.
  */
 export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
-  if (!account.address) {
+  const publicClient = getPublicClient();
+  const address = getAccountAddress();
+  if (!address) {
     throw new Error('No connected address found');
   }
 
   if (token === ADDRESSES.TOKENS.IP.id) {
     // Native token balance
-    const balance = await publicClient.getBalance({ address: account.address });
+    const balance = await publicClient.getBalance({ address: address as Address });
     return {
       value: balance,
       decimals: 18, // Native typically 18 decimals
@@ -135,7 +134,7 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
         address: token as `0x${string}`,
         abi: erc20Abi,
         functionName: 'balanceOf',
-        args: [account.address as `0x${string}`],
+        args: [address as `0x${string}`],
       }) as Promise<bigint>,
     ]);
 
@@ -143,8 +142,11 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
   }
 };
 
-
+/**
+ * Retrieves token information such as decimals, symbol, and name.
+ */
 export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
+  const publicClient = getPublicClient();
   const [decimals, symbol, name] = await Promise.all([
     readContract(publicClient, {
       address,
@@ -164,4 +166,77 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
   ]);
 
   return { decimals, symbol, name };
+}
+
+
+
+type ContractCallParams = {
+  address: `0x${string}`,
+  abi: any,
+  functionName: string,
+  args?: unknown[],
+  value?: bigint,
+  gas?: bigint,
+  chain?: Chain
+};
+
+/**
+ * Type guard to check if the client is a viem WalletClient.
+ */
+function isWalletClient(client: WalletClient | ethers.Signer): client is WalletClient {
+  return typeof (client as WalletClient).request === 'function';
+}
+
+/**
+ * universalWriteContract:
+ * Executes a contract write operation using either a viem WalletClient or an ethers Signer.
+ * 
+ * @param walletClient - The write-capable client (WalletClient or ethers Signer).
+ * @param params - The contract call parameters.
+ * 
+ * @returns The transaction hash (if viem walletClient) or an ethers TransactionResponse (if ethers Signer).
+ */
+export async function universalWriteContract(
+  walletClient: WalletClient | ethers.Signer,
+  params: ContractCallParams
+): Promise<string | ethers.TransactionResponse> {
+  const {
+    address,
+    abi,
+    functionName,
+    args = [],
+    value,
+    gas,
+    chain,
+  } = params;
+
+  if (isWalletClient(walletClient)) {
+    // viem WalletClient flow
+    console.log('is wallet client')
+    const hash = await writeContract(walletClient, {
+      address,
+      abi,
+      functionName,
+      args,
+      value,
+      gas,
+      account : walletClient.account as Account,
+      chain
+    });
+    return hash;
+  } else {
+    // ethers Signer flow
+    const contract = new ethers.Contract(address, abi, walletClient);
+    const overrides: ethers.Overrides = {};
+
+    if (value !== undefined) {
+      overrides.value = value;
+    }
+    if (gas !== undefined) {
+      overrides.gasLimit = gas;
+    }
+
+    const tx = await contract[functionName](...(args as []), overrides);
+    return tx.hash;
+  }
 }

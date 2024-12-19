@@ -1,23 +1,24 @@
 import * as STORYHUNT from '@uniswap/sdk-core';
 import { SwapRouter, Trade } from '@uniswap/v3-sdk';
 import JSBI from 'jsbi';
-import { writeContract } from 'viem/actions';
-
 import { ADDRESSES, defaultChain } from '../constants';
 import {
-  account,
-  walletClient,
   getTokenBalance,
   getAllowence,
   estimateGasCost,
+  universalWriteContract,
 } from '../utilsViem';
 
 import { formatUnits } from 'viem';
 import { SWAPROUTER_MULTICALL_ABI } from './abi';
+import { getAccountAddress, getWriteClient } from '../config';
 
 export const v3swapViem = async (trade: Trade<any, any, any>) => {
+
+  const walletClient = getWriteClient();
+  const address = getAccountAddress();
+
   try {
-    const address = account.address;
     if (!address) {
       throw new Error('No connected address found');
     }
@@ -69,14 +70,13 @@ export const v3swapViem = async (trade: Trade<any, any, any>) => {
     }
 
     // Execute the swap
-    const hash = await writeContract(walletClient, {
+    const hash = await universalWriteContract(walletClient, {
       address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
       abi: SWAPROUTER_MULTICALL_ABI,
       functionName: 'multicall',
       args: [[methodParameters.calldata]],
       value: BigInt(methodParameters.value),
       gas: estimatedGas,
-      account: account,
       chain: defaultChain
     });
 

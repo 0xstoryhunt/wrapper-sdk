@@ -19,6 +19,7 @@ export async function v3routingViem(
   amount: bigint,
   exactIn: boolean
 ): Promise<Trade<STORYHUNT.Token, STORYHUNT.Token, any>[] | Error> {
+
   try {
     let tokenInInfo: TokenInfo | undefined;
     let tokenOutInfo: TokenInfo | undefined;
