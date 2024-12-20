@@ -1,10 +1,5 @@
 import { createClient, fetchExchange } from 'urql';
-import {
-  Pool,
-  Tick,
-  TickListDataProvider,
-  Trade,
-} from '@uniswap/v3-sdk';
+import { Pool, Tick, TickListDataProvider, Trade } from '@uniswap/v3-sdk';
 import * as STORYHUNT from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 
@@ -19,7 +14,6 @@ export async function v3routingViem(
   amount: bigint,
   exactIn: boolean
 ): Promise<Trade<STORYHUNT.Token, STORYHUNT.Token, any>[] | Error> {
-
   try {
     let tokenInInfo: TokenInfo | undefined;
     let tokenOutInfo: TokenInfo | undefined;
@@ -74,7 +68,11 @@ export async function v3routingViem(
     });
 
     const topPoolResult = await graphClient
-      .query<GraphPoolResponse>(POOL_QUERY, {}, { requestPolicy: 'network-only' })
+      .query<GraphPoolResponse>(
+        POOL_QUERY,
+        {},
+        { requestPolicy: 'network-only' }
+      )
       .toPromise();
 
     const tokenPoolResult = await graphClient
@@ -125,7 +123,7 @@ export async function v3routingViem(
             pool.token1.name
           );
 
-          const ticks: Tick[] = pool.ticks.map((tick) => ({
+          const ticks: Tick[] = pool.ticks.map(tick => ({
             index: parseInt(tick.tickIdx),
             liquidityGross: JSBI.BigInt(tick.liquidityGross),
             liquidityNet: JSBI.BigInt(tick.liquidityNet),

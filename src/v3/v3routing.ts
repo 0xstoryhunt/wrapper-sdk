@@ -1,16 +1,10 @@
-import {
-  Pool,
-  Tick,
-  TickListDataProvider,
-  Trade,
-} from '@uniswap/v3-sdk';
+import { Pool, Tick, TickListDataProvider, Trade } from '@uniswap/v3-sdk';
 import * as STORYHUNT from '@uniswap/sdk-core';
 import { getToken } from '@wagmi/core';
 import JSBI from 'jsbi';
 import { createClient, fetchExchange } from 'urql';
 import { ADDRESSES, config, defaultChainId } from '../constants';
 import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
-
 
 export const v3routing = async (
   tokenIn: string,
@@ -173,5 +167,3 @@ export const v3routing = async (
     return error;
   }
 };
-
-

@@ -1,8 +1,14 @@
-import { createPublicClient, createWalletClient, http, WalletClient, PublicClient, Address } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  WalletClient,
+  PublicClient,
+  Address,
+} from 'viem';
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts';
 import { Signer } from 'ethers';
 import { defaultChain } from './constants';
-
 
 let publicClient: PublicClient | undefined;
 let walletClient: WalletClient | undefined;
@@ -64,7 +70,9 @@ export function getPublicClient(): PublicClient {
 export function getWriteClient(): WalletClient | Signer {
   if (walletClient) return walletClient;
   if (ethersSigner) return ethersSigner;
-  throw new Error('No write client available. Provide privateKey or ethersSigner in initClients.');
+  throw new Error(
+    'No write client available. Provide privateKey or ethersSigner in initClients.'
+  );
 }
 
 /**
@@ -74,10 +82,9 @@ export function getAccountAddress(): string | undefined {
   return accountAddress;
 }
 
-
 /**
  * Helper to safely get the account address as a viem-compatible Address type.
  */
 export function getAccount(): Account {
-  return toAccount(accountAddress as Address)
+  return toAccount(accountAddress as Address);
 }

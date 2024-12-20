@@ -3,5 +3,5 @@ module.exports = {
   setupFiles: ['dotenv/config'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/tests/dist/**/*.test.js'], 
+  testMatch: ['**/tests/dist/*.test.js'],
 };

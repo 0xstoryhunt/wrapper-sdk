@@ -1,4 +1,3 @@
-
 // query top pools
 export const POOL_QUERY = `
 query Pools {
@@ -133,8 +132,7 @@ export const USER_POSITIONS_QUERY = `
       }
     }
   }
-`
-
+`;
 
 export const TOP_POOLS_QUERY = `
   query TopPools {

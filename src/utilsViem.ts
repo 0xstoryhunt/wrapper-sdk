@@ -1,13 +1,23 @@
 import 'dotenv/config';
-import {  Account, Address, Chain, encodeFunctionData, WalletClient } from 'viem';
+import {
+  Account,
+  Address,
+  Chain,
+  encodeFunctionData,
+  WalletClient,
+} from 'viem';
 import { erc20Abi } from 'viem';
 import { MaxUint256 } from '@uniswap/sdk-core';
 import { ADDRESSES, defaultChain } from './constants';
 import { readContract, writeContract } from 'viem/actions';
-import { getPublicClient, getWriteClient, getAccountAddress, getAccount } from './config';
+import {
+  getPublicClient,
+  getWriteClient,
+  getAccountAddress,
+  getAccount,
+} from './config';
 import { TokenInfo } from './v3/types';
 import { ethers } from 'ethers';
-
 
 interface GasParams {
   address: `0x${string}`;
@@ -71,7 +81,7 @@ export const tokenApproval = async (
     abi: erc20Abi,
     functionName: 'approve',
     args: [spender as `0x${string}`, amount],
-    chain: defaultChain
+    chain: defaultChain,
   };
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
@@ -117,7 +127,9 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
 
   if (token === ADDRESSES.TOKENS.IP.id) {
     // Native token balance
-    const balance = await publicClient.getBalance({ address: address as Address });
+    const balance = await publicClient.getBalance({
+      address: address as Address,
+    });
     return {
       value: balance,
       decimals: 18, // Native typically 18 decimals
@@ -168,51 +180,43 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
   return { decimals, symbol, name };
 }
 
-
-
 type ContractCallParams = {
-  address: `0x${string}`,
-  abi: any,
-  functionName: string,
-  args?: unknown[],
-  value?: bigint,
-  gas?: bigint,
-  chain?: Chain
+  address: `0x${string}`;
+  abi: any;
+  functionName: string;
+  args?: unknown[];
+  value?: bigint;
+  gas?: bigint;
+  chain?: Chain;
 };
 
 /**
  * Type guard to check if the client is a viem WalletClient.
  */
-function isWalletClient(client: WalletClient | ethers.Signer): client is WalletClient {
+function isWalletClient(
+  client: WalletClient | ethers.Signer
+): client is WalletClient {
   return typeof (client as WalletClient).request === 'function';
 }
 
 /**
  * universalWriteContract:
  * Executes a contract write operation using either a viem WalletClient or an ethers Signer.
- * 
+ *
  * @param walletClient - The write-capable client (WalletClient or ethers Signer).
  * @param params - The contract call parameters.
- * 
+ *
  * @returns The transaction hash (if viem walletClient) or an ethers TransactionResponse (if ethers Signer).
  */
 export async function universalWriteContract(
   walletClient: WalletClient | ethers.Signer,
   params: ContractCallParams
 ): Promise<string | ethers.TransactionResponse> {
-  const {
-    address,
-    abi,
-    functionName,
-    args = [],
-    value,
-    gas,
-    chain,
-  } = params;
+  const { address, abi, functionName, args = [], value, gas, chain } = params;
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
-    console.log('is wallet client')
+    console.log('is wallet client');
     const hash = await writeContract(walletClient, {
       address,
       abi,
@@ -220,8 +224,8 @@ export async function universalWriteContract(
       args,
       value,
       gas,
-      account : walletClient.account as Account,
-      chain
+      account: walletClient.account as Account,
+      chain,
     });
     return hash;
   } else {

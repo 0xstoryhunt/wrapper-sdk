@@ -12,4 +12,3 @@
 // import { readContract } from 'viem/actions';
 
 // import { ADDRESSES,  defaultChain, defaultChainId } from '../constants';
-

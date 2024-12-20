@@ -14,7 +14,6 @@ import { SWAPROUTER_MULTICALL_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
 
 export const v3swapViem = async (trade: Trade<any, any, any>) => {
-
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -45,13 +44,19 @@ export const v3swapViem = async (trade: Trade<any, any, any>) => {
     }
 
     // Check allowance
-    const allowance = await getAllowence(tokenInAddress, ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`);
+    const allowance = await getAllowence(
+      tokenInAddress,
+      ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`
+    );
     if (allowance < inputAmount) {
       throw new Error('Insufficient allowance');
     }
 
     const methodParameters = SwapRouter.swapCallParameters(trade, {
-      slippageTolerance: new STORYHUNT.Percent(JSBI.BigInt(50), JSBI.BigInt(10000)), // 0.5%
+      slippageTolerance: new STORYHUNT.Percent(
+        JSBI.BigInt(50),
+        JSBI.BigInt(10000)
+      ), // 0.5%
       deadline: JSBI.BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // 20 minutes from now
       recipient: address,
     });
@@ -77,7 +82,7 @@ export const v3swapViem = async (trade: Trade<any, any, any>) => {
       args: [[methodParameters.calldata]],
       value: BigInt(methodParameters.value),
       gas: estimatedGas,
-      chain: defaultChain
+      chain: defaultChain,
     });
 
     return hash;
