@@ -1,16 +1,14 @@
-// import { useWriteContract } from 'wagmi';
-// // import {ADDRESSES} from '../constants';
+// import { createClient, fetchExchange } from 'urql';
+// import {
+//   Pool,
+//   Tick,
+//   TickListDataProvider,
+//   Trade,
+// } from '@uniswap/v3-sdk';
+// import * as STORYHUNT from '@uniswap/sdk-core';
+// import JSBI from 'jsbi';
 
-// export const v3Liquidity = async (
-//   amount1: bigint,
-//   amount2: bigint,
-//   expirationTimestamp: bigint
-// ) => {
-//   const { writeContractAsync: swapWriter } = useWriteContract();
+// import { createPublicClient, http } from 'viem';
+// import { readContract } from 'viem/actions';
 
-//   try {
-//     let hash = '0x';
-//   } catch (error) {
-//     console.error('Error in swap:', error);
-//   }
-// };
+// import { ADDRESSES,  defaultChain, defaultChainId } from '../constants';

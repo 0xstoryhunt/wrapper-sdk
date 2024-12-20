@@ -2,7 +2,7 @@ import { defineConfig } from 'tsup';
 
 export default defineConfig({
   format: ['esm'],
-  entry: ['tests/src/index.test.ts', 'tests/src/ethers.test.ts'],
+  entry: ['tests/src'],
   outDir: './tests/dist',
   dts: false,
   minify: false,
