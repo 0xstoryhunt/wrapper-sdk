@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ADDRESSES, getWriteClient, initClient, v3routingViem, v3swapViem } from '../../src';
+import { ADDRESSES, getWriteClient, initClient, swapRouterV3, swapV3 } from '../../src';
 import { Trade } from '@uniswap/v3-sdk';
 import { Token } from '@uniswap/sdk-core';
 
@@ -28,7 +28,7 @@ describe('routing', () => {
     const tokenOut = ADDRESSES.TOKENS.JUTSU.id; // IP token
     const amount = BigInt(10 ** 15); // 0.001 WIP
 
-    const routes = await v3routingViem(tokenIn, tokenOut, amount, false);
+    const routes = await swapRouterV3(tokenIn, tokenOut, amount, false);
     expect(routes).toBeDefined();
   },15000);
 
@@ -37,7 +37,7 @@ describe('routing', () => {
     const tokenOut = ADDRESSES.TOKENS.IP.id; // IP token
     const amount = BigInt(10 ** 15); // 0.001 WIP
 
-    const routes = await v3routingViem(tokenIn, tokenOut, amount, false);
+    const routes = await swapRouterV3(tokenIn, tokenOut, amount, false);
     expect(routes.toString()).toBe("");
   },15000);
 });
@@ -49,7 +49,7 @@ describe('swap viem client', () => {
     const amountIn = BigInt(10 ** 15); //  0.001 WIP
 
     // Get a route for the swap
-    const routes : Trade<Token, Token, any>[] | Error= await v3routingViem(tokenIn, tokenOut, amountIn, true);
+    const routes : Trade<Token, Token, any>[] | Error= await swapRouterV3(tokenIn, tokenOut, amountIn, true);
 
     expect(routes).toBeDefined();
     expect(Array.isArray(routes)).toBe(true);
@@ -62,7 +62,7 @@ describe('swap viem client', () => {
     expect(bestTrade).toBeDefined();
 
     // Execute the swap
-    const swapResult = await v3swapViem(bestTrade);
+    const swapResult = await swapV3(bestTrade);
     //console.log("swapResult" ,swapResult)
     expect(swapResult).toBeDefined();
     // If successful, this should be a transaction hash (a string)

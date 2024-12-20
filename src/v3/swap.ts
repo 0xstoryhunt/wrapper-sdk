@@ -7,13 +7,13 @@ import {
   getAllowence,
   estimateGasCost,
   universalWriteContract,
-} from '../utilsViem';
+} from '../utils';
 
 import { formatUnits } from 'viem';
 import { SWAPROUTER_MULTICALL_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
 
-export const v3swapViem = async (trade: Trade<any, any, any>) => {
+export const swapV3 = async (trade: Trade<STORYHUNT.Token, STORYHUNT.Token, STORYHUNT.TradeType>) => {
 
   const walletClient = getWriteClient();
   const address = getAccountAddress();
