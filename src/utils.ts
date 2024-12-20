@@ -16,16 +16,8 @@ import {
   getAccountAddress,
   getAccount,
 } from './config';
-import { TokenInfo } from './v3/types';
+import { GasParams, TokenInfo } from './v3/types';
 import { ethers } from 'ethers';
-
-interface GasParams {
-  address: `0x${string}`;
-  abi: any[];
-  functionName: string;
-  args: unknown[];
-  value: bigint;
-}
 
 /**
  * Estimates gas cost for a given contract call, applying an optional percentage.
@@ -87,13 +79,63 @@ export const tokenApproval = async (
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
   const result = await universalWriteContract(writeClient, params);
   // If needed, check result type and normalize:
-  if (typeof result === 'string') {
-    console.log('Transaction hash (viem):', result);
-    return result;
-  } else {
-    console.log('Transaction hash (ethers):', result.hash);
-    return result.hash;
+  console.log('Transaction hash : ', result);
+};
+
+/**
+ * Approves V3_SWAP_ROUTER to use a certain amount of tokens on behalf of the user's account.
+ * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
+ */
+export const v3RoutertokenApproval = async (
+  token: string,
+  amount: bigint = BigInt(MaxUint256.toString())
+) => {
+  const writeClient = getWriteClient();
+  const account = getAccount();
+  if (!account) {
+    throw new Error('No connected account found.');
   }
+
+  const params = {
+    address: token as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'approve',
+    args: [ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS, amount],
+    chain: defaultChain,
+  };
+
+  // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
+  const result = await universalWriteContract(writeClient, params);
+  // If needed, check result type and normalize:
+  console.log('Transaction hash : ', result);
+};
+
+/**
+ * Approves V3_NONFUNGIBLE_POSITION_MANAGER to use a certain amount of tokens on behalf of the user's account.
+ * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
+ */
+export const v3PositionManagertokenApproval = async (
+  token: string,
+  amount: bigint = BigInt(MaxUint256.toString())
+) => {
+  const writeClient = getWriteClient();
+  const account = getAccount();
+  if (!account) {
+    throw new Error('No connected account found.');
+  }
+
+  const params = {
+    address: token as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'approve',
+    args: [ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS, amount],
+    chain: defaultChain,
+  };
+
+  // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
+  const result = await universalWriteContract(writeClient, params);
+  // If needed, check result type and normalize:
+  console.log('Transaction hash : ', result);
 };
 
 /**

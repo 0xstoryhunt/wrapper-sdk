@@ -42,3 +42,11 @@ export interface TokenInfo {
   symbol: string;
   name: string;
 }
+
+export interface GasParams {
+  address: `0x${string}`;
+  abi: any[];
+  functionName: string;
+  args: unknown[];
+  value: bigint;
+}

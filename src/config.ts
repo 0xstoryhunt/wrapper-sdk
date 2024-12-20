@@ -18,7 +18,6 @@ let accountAddress: string | undefined;
 /**
  * Initialize clients for the SDK.
  *
- * @param options.chain - Chain configuration.
  * @param options.privateKey - Optional private key. If present, viem walletClient is used for writes.
  * @param options.ethersSigner - Optional ethers.js Signer. Used if no privateKey is provided.
  */

@@ -3,17 +3,19 @@ import { Pool, Tick, TickListDataProvider, Trade } from '@uniswap/v3-sdk';
 import * as STORYHUNT from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 
-import { ADDRESSES, defaultChainId } from '../constants';
+import { ADDRESSES, defaultChainId, SUBGRAPH_URL } from '../constants';
 import { getTokenInfo } from '../utils';
 import { GraphPoolResponse, TokenInfo } from './types';
 import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
 
-export async function v3routing(
+export async function swapRouterV3(
   tokenIn: string,
   tokenOut: string,
   amount: bigint,
   exactIn: boolean
-): Promise<Trade<STORYHUNT.Token, STORYHUNT.Token, any>[] | Error> {
+): Promise<
+  Trade<STORYHUNT.Token, STORYHUNT.Token, STORYHUNT.TradeType>[] | Error
+> {
   try {
     let tokenInInfo: TokenInfo | undefined;
     let tokenOutInfo: TokenInfo | undefined;
@@ -63,7 +65,7 @@ export async function v3routing(
           );
 
     const graphClient = createClient({
-      url: 'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.0/gn',
+      url: SUBGRAPH_URL,
       exchanges: [fetchExchange],
     });
 
