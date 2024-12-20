@@ -111,6 +111,18 @@ export const USER_POSITIONS_QUERY = `
        pool {
         id
         feeTier
+        liquidity
+        token0Price
+        token1Price
+        totalValueLockedToken0
+        totalValueLockedToken1
+        volumeToken0
+        volumeToken1
+        sqrtPrice
+        token0Price
+        token1Price
+        tick
+        ticks
       }
       tickLower {
         id

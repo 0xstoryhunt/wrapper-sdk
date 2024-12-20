@@ -15,8 +15,10 @@ import {
   getAccountAddress,
   getAccount,
 } from './config';
-import { GasParams, TokenInfo } from './v3/types';
+import { GasParams, PoolInfo, TokenInfo } from './v3/types';
 import { ethers } from 'ethers';
+import { POOL_ABI, POOL_FACTORY_ABI } from './v3/abi';
+import JSBI from 'jsbi';
 
 /**
  * Estimates gas cost for a given contract call, applying an optional percentage.
@@ -73,6 +75,7 @@ export const tokenApproval = async (
     functionName: 'approve',
     args: [spender as `0x${string}`, amount],
     chain: defaultChain,
+    value: BigInt(0),
   };
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
@@ -101,6 +104,7 @@ export const v3RoutertokenApproval = async (
     functionName: 'approve',
     args: [ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS, amount],
     chain: defaultChain,
+    value: BigInt(0),
   };
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
@@ -129,6 +133,7 @@ export const v3PositionManagertokenApproval = async (
     functionName: 'approve',
     args: [ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS, amount],
     chain: defaultChain,
+    value: BigInt(0),
   };
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
@@ -153,6 +158,28 @@ export const getAllowence = async (token: string, spender: string) => {
     functionName: 'allowance',
     args: [account as `0x${string}`, spender as `0x${string}`],
   })) as bigint;
+};
+
+/**
+ * Retrieves the pool of a token pair.
+ */
+export const getPool = async (
+  token0: `0x${string}`,
+  token1: `0x${string}`,
+  fee: 500 | 3000 | 10000
+) => {
+  const publicClient = getPublicClient();
+  const account = getAccountAddress();
+  if (!account) {
+    throw new Error('No connected address found');
+  }
+
+  return (await readContract(publicClient, {
+    address: ADDRESSES.V3_POOL_FACTORY_CONTRACT_ADDRESS as `0x${string}`,
+    abi: POOL_FACTORY_ABI,
+    functionName: 'getPool',
+    args: [token0, token1, fee],
+  })) as `0x${string}`;
 };
 
 /**
@@ -218,16 +245,66 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
     }) as Promise<string>,
   ]);
 
-  return { decimals, symbol, name };
+  return { decimals, symbol, name, address };
+}
+
+/**
+ * Retrieves pool information such as fee, state, liquidity, tick, ticks, sqrtPriceX96.
+ */
+export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
+  const publicClient = getPublicClient();
+  const [fee, state, liquidity] = await Promise.all([
+    readContract(publicClient, {
+      address,
+      abi: POOL_ABI,
+      functionName: 'fee',
+    }) as Promise<number>,
+    readContract(publicClient, {
+      address,
+      abi: POOL_ABI,
+      functionName: 'slot0',
+    }) as Promise<{
+      state: { sqrtPriceX96: number };
+      tick: number;
+      sqrtPriceX96: number;
+    }>,
+    readContract(publicClient, {
+      address,
+      abi: POOL_ABI,
+      functionName: 'liquidity',
+    }) as Promise<string>,
+  ]);
+  const ticks = await readContract(publicClient, {
+    address,
+    abi: POOL_ABI,
+    functionName: 'ticks',
+    args: [state.tick],
+  });
+
+  return {
+    fee,
+    state,
+    liquidity: JSBI.BigInt(liquidity.toString()),
+    tick: state.tick,
+    ticks,
+    sqrtPriceX96: JSBI.BigInt(state.sqrtPriceX96.toString()),
+  };
 }
 
 type ContractCallParams = {
   address: `0x${string}`;
   abi: any;
   functionName: string;
-  args?: unknown[];
+  args: unknown[];
+  value: bigint;
+  chain?: Chain;
+};
+
+type TransactionParams = {
+  to: `0x${string}`;
   value?: bigint;
-  gas?: bigint;
+  gasLimit?: bigint;
+  data: `0x${string}`;
   chain?: Chain;
 };
 
@@ -253,18 +330,27 @@ export async function universalWriteContract(
   walletClient: WalletClient | ethers.Signer,
   params: ContractCallParams
 ): Promise<string | ethers.TransactionResponse> {
-  const { address, abi, functionName, args = [], value, gas, chain } = params;
+  const { address, abi, functionName, args = [], value, chain } = params;
+  console.log('is wallet client');
+  // Estimate gas
+  const estimatedGas = await estimateGasCost({
+    address: params.address,
+    abi: params.abi,
+    functionName: params.functionName,
+    args: params.args,
+    value: params.value,
+  });
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
-    console.log('is wallet client');
+
     const hash = await writeContract(walletClient, {
       address,
       abi,
       functionName,
       args,
       value,
-      gas,
+      gas: estimatedGas,
       account: walletClient.account as Account,
       chain,
     });
@@ -277,11 +363,50 @@ export async function universalWriteContract(
     if (value !== undefined) {
       overrides.value = value;
     }
-    if (gas !== undefined) {
-      overrides.gasLimit = gas;
+    if (estimatedGas !== undefined) {
+      overrides.gasLimit = estimatedGas;
     }
 
     const tx = await contract[functionName](...(args as []), overrides);
+    return tx.hash;
+  }
+}
+
+/**
+ * universalSendTransaction:
+ * Sends a transaction using either a viem WalletClient or an ethers Signer.
+ *
+ * @param walletClient - The write-capable client (WalletClient or ethers Signer).
+ * @param params - The transaction parameters.
+ *
+ * @returns The transaction hash (if viem walletClient) or an ethers TransactionResponse (if ethers Signer).
+ */
+export async function universalSendTransaction(
+  walletClient: WalletClient | ethers.Signer,
+  params: TransactionParams
+): Promise<string | ethers.TransactionResponse> {
+  const { to, value, gasLimit, data, chain } = params;
+
+  if (isWalletClient(walletClient)) {
+    // viem WalletClient flow
+    console.log('is wallet client');
+    const hash = await walletClient.sendTransaction({
+      to,
+      value,
+      gasLimit,
+      data,
+      chain,
+      account: walletClient.account as Account,
+    });
+    return hash;
+  } else {
+    // ethers Signer flow
+    const tx = await walletClient.sendTransaction({
+      to,
+      value,
+      gasLimit,
+      data,
+    });
     return tx.hash;
   }
 }

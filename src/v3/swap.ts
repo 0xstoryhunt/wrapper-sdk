@@ -10,7 +10,7 @@ import {
 } from '../utils';
 
 import { formatUnits } from 'viem';
-import { SWAPROUTER_MULTICALL_ABI } from './abi';
+import { SWAP_ROUTER_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
 
 export const swapV3 = async (
@@ -54,7 +54,7 @@ export const swapV3 = async (
       throw new Error('Insufficient allowance');
     }
 
-    const methodParameters = SwapRouter.swapCallParameters(trade, {
+    const { calldata, value } = SwapRouter.swapCallParameters(trade, {
       slippageTolerance: new STORYHUNT.Percent(
         JSBI.BigInt(50),
         JSBI.BigInt(10000)
@@ -63,27 +63,13 @@ export const swapV3 = async (
       recipient: address,
     });
 
-    // Estimate gas
-    const estimatedGas = await estimateGasCost({
-      address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
-      abi: SWAPROUTER_MULTICALL_ABI,
-      functionName: 'multicall',
-      args: [[methodParameters.calldata]],
-      value: BigInt(methodParameters.value),
-    });
-
-    if (!estimatedGas) {
-      throw new Error('Failed to estimate gas');
-    }
-
     // Execute the swap
     const hash = await universalWriteContract(walletClient, {
       address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
-      abi: SWAPROUTER_MULTICALL_ABI,
+      abi: SWAP_ROUTER_ABI,
       functionName: 'multicall',
-      args: [[methodParameters.calldata]],
-      value: BigInt(methodParameters.value),
-      gas: estimatedGas,
+      args: [[calldata]],
+      value: BigInt(value),
       chain: defaultChain,
     });
 
