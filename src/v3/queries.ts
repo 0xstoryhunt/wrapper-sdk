@@ -1,30 +1,30 @@
 // query top pools
 export const POOL_QUERY = `
 query Pools {
-   pools(
-      orderBy: liquidity
-      orderDirection: desc
-      where: {id_in: ["0x608258e86ddd9033e069a9711f34a062692f1fcb", "0x6ac5c6b3986639099a196731aaa2bd8e5e349482", "0xf46c615481b5b90a0f977447f977afba5597e384", "0xd9e66e963aba63b390ef69259b4c147c0a2ec189"]}
-    ) {
-    id
-    totalValueLockedToken0
-    totalValueLockedToken1
-    volumeToken0
-    volumeToken1
-    token0Price
-    token1Price
-    token0{id symbol decimals name}
-    token1{id symbol decimals name}
-    feeTier
-    liquidity
-    sqrtPrice
-    createdAtTimestamp
-    volumeUSD
-    tick
-    ticks(first: 1000) {poolAddress liquidityGross liquidityNet tickIdx }
-    observationIndex
-    feesUSD
-  }
+  pools(
+     first: 1000
+     orderBy: liquidity
+     orderDirection: desc
+   ) {
+   id
+   totalValueLockedToken0
+   totalValueLockedToken1
+   volumeToken0
+   volumeToken1
+   token0Price
+   token1Price
+   token0{id symbol decimals name}
+   token1{id symbol decimals name}
+   feeTier
+   liquidity
+   sqrtPrice
+   createdAtTimestamp
+   volumeUSD
+   tick
+   ticks(first: 1000) {poolAddress liquidityGross liquidityNet tickIdx }
+   observationIndex
+   feesUSD
+ }
 }
 `;
 
@@ -238,31 +238,4 @@ query MyQuery($positionId: ID!, $owner: Bytes!) {
       }
 }
 }
-`;
-
-export const TOP_POOLS_QUERY = `
-  query TopPools {
-    pools(
-      where: {id_in: ["0xd9e66e963aba63b390ef69259b4c147c0a2ec189", "0x6ac5c6b3986639099a196731aaa2bd8e5e349482", "0x608258e86ddd9033e069a9711f34a062692f1fcb", "0xf46c615481b5b90a0f977447f977afba5597e384"]}
-    ) {
-      id
-      feeTier
-      liquidity
-      volumeToken0
-      volumeToken1
-      totalValueLockedToken0
-      totalValueLockedToken1
-      token0Price
-      token1Price
-      volumeUSD
-      token0 {
-        symbol
-        id
-      }
-      token1 {
-        symbol
-        id
-      }
-    }
-  }
 `;
