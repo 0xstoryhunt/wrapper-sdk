@@ -16,10 +16,11 @@ import {
   getAccount,
   executeGraphQuery,
 } from './config';
-import { GasParams, PoolInfo, TokenInfo } from './v3/types';
+import { GasParams, GraphPoolResponse, PoolInfo, TokenInfo } from './v3/types';
 import { ethers } from 'ethers';
 import { POOL_ABI, POOL_FACTORY_ABI, WIP_ABI } from './v3/abi';
 import JSBI from 'jsbi';
+import { USER_POSITIONS_QUERY } from './v3/queries';
 
 /**
  * Estimates gas cost for a given contract call, applying an optional percentage.
@@ -448,8 +449,13 @@ export async function unwrap(value: bigint) {
 }
 
 
-export async function getUserPoolsV3() {
+export async function getUserPoolsV3(): Promise<any> {
   const address = getAccountAddress();
-  const userPoolsResults = await executeGraphQuery('',{ userId : address});
+  const userPoolsResults = await executeGraphQuery<GraphPoolResponse>(
+        USER_POSITIONS_QUERY,
+        {
+          userId: address?.toLowerCase()
+        }
+      );
   return userPoolsResults;
 }
