@@ -50,9 +50,15 @@ export async function swapV3(
       tokenInAddress,
       ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`
     );
+
     if (allowance < inputAmount) {
       throw new Error('Insufficient allowance');
     }
+
+    //wrap if ip
+    // if(trade.inputAmount.currency.address === ADDRESSES.TOKENS.IP.id){
+    //   await wrap(inputAmount);
+    // }
 
     const { calldata, value } = SwapRouter.swapCallParameters(trade, {
       slippageTolerance: new STORYHUNT.Percent(
@@ -74,6 +80,9 @@ export async function swapV3(
     });
 
     return hash;
+
+    //unwrap if wip
+
   } catch (error) {
     console.error('Error in swap:', error);
     return error as unknown as Error;

@@ -1,6 +1,4 @@
 import { defineChain } from 'viem';
-import { createConfig, http } from '@wagmi/core';
-import { coinbaseWallet, metaMask } from 'wagmi/connectors';
 import { Fraction } from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 
@@ -49,28 +47,6 @@ const chains = {
 
 export const defaultChain = chains['ODYSSEY'];
 export const defaultChainId = defaultChain.id;
-export const config = createConfig({
-  chains: [defaultChain],
-  connectors: [
-    metaMask({
-      dappMetadata: {
-        name: 'StoryHunt',
-        url: 'https://app.storyhunt.xyz',
-        iconUrl: 'https://app.storyhunt.xyz/icons/storyhunt-logo.svg',
-        base64Icon:
-          'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MyIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQzIDQ4IiBmaWxsPSJub25lIj4KICA8cGF0aCBkPSJNMzYuOTcwOCAxNi42OTc3QzMwLjMwNDIgMTIuODQ4NSAzNS4wODQyIDQuODIzNzUgMzkuNzQ4NCAwTDE1LjAwMjkgMjUuNTkyM0MxMy45MzM0IDI2LjY5ODQgMTIuMjQ4NCAyNi45MzQ3IDEwLjkxNTkgMjYuMTY1NEM3LjkzNzggMjQuNDQ2IDYuOTE3NDQgMjAuNjM3OSA4LjYzNjg0IDE3LjY1OThMOS40ODU5MSAxNi4xODkxQzExLjA0NiAxMy40ODcgMTQuMzI1NyAxMi4zOTY2IDE3LjE0NDcgMTMuNTAyMUwyNi4zMjA0IDQuMDEyNEMyNC45Njg1IDUuNDEwNiAyMS43NzQ0IDcuOTIzOTMgMTkuODEzNiA2Ljc5MTg0QzE0LjM5ODggMy42NjU2NCA3LjQ3NTA2IDUuNTIwODYgNC4zNDg4NiAxMC45MzU2TDEuNTE4NjEgMTUuODM3N0MtMS42MDc1OSAyMS4yNTI1IDAuMjQ3NjQgMjguMTc2MiA1LjY2MjM3IDMxLjMwMjRDMTIuMzI5MyAzNS4xNTE2IDcuNTQ5MDcgNDMuMTc2NCAyLjg4NDkyIDQ4TDI3LjYzMDQgMjIuNDA3OEMyOC43IDIxLjMwMTcgMzAuMzg0OSAyMS4wNjU0IDMxLjcxNzQgMjEuODM0OEMzNC42OTU2IDIzLjU1NDIgMzUuNzE1OSAyNy4zNjIyIDMzLjk5NjUgMzAuMzQwNEwzMy4xNDc1IDMxLjgxMUMzMS41ODc0IDM0LjUxMzEgMjguMzA3OCAzNS42MDM2IDI1LjQ4ODYgMzQuNDk4MUwxNi4zMTMgNDMuOTg3NkMxNy42NjQ5IDQyLjU4OTQgMjAuODU4OSA0MC4wNzYyIDIyLjgxOTggNDEuMjA4M0MyOC4yMzQ1IDQ0LjMzNDYgMzUuMTU4NCA0Mi40NzkzIDM4LjI4NDQgMzcuMDY0NUw0MS4xMTQ2IDMyLjE2MjNDNDQuMjQwOSAyNi43NDc3IDQyLjM4NTcgMTkuODIzOSAzNi45NzA4IDE2LjY5NzdaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4=',
-      },
-    }),
-    coinbaseWallet({
-      chainId: defaultChain.id,
-      appName: 'StoryHunt Dex',
-    }),
-  ],
-  transports: {
-    [defaultChainId]: http(defaultChain.rpcUrls.default.http[0]),
-  },
-  ssr: false,
-});
 
 // Story network addresses
 const ADDRESSES_CONFIG = {

@@ -14,10 +14,11 @@ import {
   getWriteClient,
   getAccountAddress,
   getAccount,
+  executeGraphQuery,
 } from './config';
 import { GasParams, PoolInfo, TokenInfo } from './v3/types';
 import { ethers } from 'ethers';
-import { POOL_ABI, POOL_FACTORY_ABI } from './v3/abi';
+import { POOL_ABI, POOL_FACTORY_ABI, WIP_ABI } from './v3/abi';
 import JSBI from 'jsbi';
 
 /**
@@ -330,7 +331,7 @@ export async function universalWriteContract(
   walletClient: WalletClient | ethers.Signer,
   params: ContractCallParams
 ): Promise<string | ethers.TransactionResponse> {
-  const { address, abi, functionName, args = [], value, chain } = params;
+  const { address, abi, functionName, args = [], value, chain = defaultChain } = params;
   console.log('is wallet client');
   // Estimate gas
   const estimatedGas = await estimateGasCost({
@@ -385,7 +386,7 @@ export async function universalSendTransaction(
   walletClient: WalletClient | ethers.Signer,
   params: TransactionParams
 ): Promise<string | ethers.TransactionResponse> {
-  const { to, value, gasLimit, data, chain } = params;
+  const { to, value, gasLimit, data, chain = defaultChain  } = params;
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
@@ -409,4 +410,46 @@ export async function universalSendTransaction(
     });
     return tx.hash;
   }
+}
+
+
+/**
+ * Wrap IP into WIP (calls "deposit" on the WIP contract).
+ * @param value The amount of native IP to wrap, in wei (bigint).
+ */
+export async function wrap(value: bigint) {
+  const writeClient = getWriteClient();
+  const txHash = await universalWriteContract(writeClient, {
+    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`, 
+    abi: WIP_ABI,
+    functionName: 'deposit',
+    args: [],
+    value,
+  });
+
+  return txHash;
+}
+
+/**
+ * Unwrap WIP back to native IP (calls "withdraw" on the WIP contract).
+ * @param value The amount of WIP to unwrap, in wei (bigint).
+ */
+export async function unwrap(value: bigint) {
+  const writeClient = getWriteClient();
+  const txHash = await universalWriteContract(writeClient, {
+    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
+    abi: WIP_ABI,
+    functionName: 'withdraw',
+    args: [value],
+    value : BigInt(0),
+  });
+
+  return txHash;
+}
+
+
+export async function getUserPoolsV3() {
+  const address = getAccountAddress();
+  const userPoolsResults = await executeGraphQuery('',{ userId : address});
+  return userPoolsResults;
 }

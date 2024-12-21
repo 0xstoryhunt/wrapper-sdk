@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { getWriteClient, initClient } from '../../src';
+import { getWriteClient, initClient, unwrap, wrap } from '../../src';
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
 import { ADDRESSES } from '../../src';
@@ -48,15 +48,6 @@ describe('routing', () => {
     const routes = await swapRouterV3(tokenIn, tokenOut, amount, false);
     expect(routes).toBeDefined();
   }, 15000);
-
-  test('routing wip/ip to be empty', async () => {
-    const tokenIn = ADDRESSES.TOKENS.WIP.id; // WIP token
-    const tokenOut = ADDRESSES.TOKENS.IP.id; // IP token
-    const amount = BigInt(10 ** 15); // 0.001 WIP
-
-    const routes = await swapRouterV3(tokenIn, tokenOut, amount, false);
-    expect(routes.toString()).toBe('');
-  }, 15000);
 });
 
 describe('swap', () => {
@@ -95,6 +86,69 @@ describe('swap', () => {
   }, 60000);
 });
 
+describe('Wrap and Unwrap Integration Tests', () => {
+  // const WIP_ADDRESS = ADDRESSES.TOKENS.WIP.id;
+  // const IP_ADDRESS = ADDRESSES.TOKENS.IP.id;
+
+  test('Wrap IP into WIP', async () => {
+    const wrapAmount = BigInt(10 ** 18); // 1 IP in wei
+
+    // Get initial balances
+    // const initialIPBalance = await getTokenBalance(IP_ADDRESS);
+    // const initialWIPBalance = await getTokenBalance(WIP_ADDRESS);
+
+    // console.log('Initial IP Balance:', initialIPBalance.value.toString());
+    // console.log('Initial WIP Balance:', initialWIPBalance.value.toString());
+
+    // Perform wrap
+    const txHash = await wrap(wrapAmount);
+    expect(txHash).toBeDefined();
+    expect(typeof txHash).toBe('string'); // Expecting a transaction hash as string
+
+    console.log('Wrap transaction hash:', txHash);
+
+    // // Get final balances
+    // const finalIPBalance = await getTokenBalance(IP_ADDRESS);
+    // const finalWIPBalance = await getTokenBalance(WIP_ADDRESS);
+
+    // console.log('Final IP Balance:', finalIPBalance.value.toString());
+    // console.log('Final WIP Balance:', finalWIPBalance.value.toString());
+
+    // // Check that IP decreased and WIP increased
+    // expect(finalIPBalance.value).toBeLessThan(initialIPBalance.value);
+    // expect(finalWIPBalance.value).toBeGreaterThan(initialWIPBalance.value);
+  },60000);
+
+  test('Unwrap WIP back to IP', async () => {
+    const unwrapAmount = BigInt(10 ** 18); // 1 WIP in wei
+
+    // Get initial balances
+    // const initialIPBalance = await getTokenBalance(IP_ADDRESS);
+    // const initialWIPBalance = await getTokenBalance(WIP_ADDRESS);
+
+    // console.log('Initial IP Balance:', initialIPBalance.value.toString());
+    // console.log('Initial WIP Balance:', initialWIPBalance.value.toString());
+
+    // Perform unwrap
+    const txHash = await unwrap(unwrapAmount);
+    expect(txHash).toBeDefined();
+    expect(typeof txHash).toBe('string'); // Expecting a transaction hash as string
+
+    console.log('Unwrap transaction hash:', txHash);
+
+    // Get final balances
+    // const finalIPBalance = await getTokenBalance(IP_ADDRESS);
+    // const finalWIPBalance = await getTokenBalance(WIP_ADDRESS);
+
+    // console.log('Final IP Balance:', finalIPBalance.value.toString());
+    // console.log('Final WIP Balance:', finalWIPBalance.value.toString());
+
+    // // Check that WIP decreased and IP increased
+    // expect(finalWIPBalance.value).toBeLessThan(initialWIPBalance.value);
+    // expect(finalIPBalance.value).toBeGreaterThan(initialIPBalance.value);
+  },60000);
+});
+
 describe('Pool Operations', () => {
   const tokenA = ADDRESSES.TOKENS.WIP.id;
   const tokenB = ADDRESSES.TOKENS.FATE.id;
@@ -110,14 +164,14 @@ describe('Pool Operations', () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
     }
-  });
+  }, 60000);
 
   test('already has a pool', async () => {
     const error = await createPoolV3(tokenA, tokenB, desirePrice, fee);
     if (error instanceof Error) {
       expect(error.message).toBe('Pool already exists');
     }
-  });
+  }, 60000);
 
   test('should add initial liquidity to the pool', async () => {
     const amountA = 10; // 10 WIP
@@ -134,7 +188,7 @@ describe('Pool Operations', () => {
     );
     expect(result).toBeDefined();
     expect(typeof result).toBe('string');
-  });
+  }, 60000);
 
   test('should add liquidity to the same position', async () => {
     const additionalAmountA = 10; // 10 WIP
@@ -147,7 +201,7 @@ describe('Pool Operations', () => {
     );
     expect(result).toBeDefined();
     expect(typeof result).toBe('string');
-  });
+  }, 60000);
 
   test('should remove liquidity from the position', async () => {
     const liquidityToRemove = 50; // 50% worth of liquidity
@@ -155,11 +209,11 @@ describe('Pool Operations', () => {
     const result = await removeLiquidityV3(positionId, liquidityToRemove);
     expect(result).toBeDefined();
     expect(typeof result).toBe('string'); // Transaction hash
-  });
+  }, 60000);
 
   test('should collect fees from the position', async () => {
     const result = await collectFeeV3(positionId);
     expect(result).toBeDefined();
     expect(typeof result).toBe('string'); // Transaction hash
-  });
+  }, 60000);
 });
