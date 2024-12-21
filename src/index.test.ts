@@ -1,8 +1,9 @@
-import { getWriteClient, initClient, unwrap, wrap } from '../../src';
-// import { defaultChain } from '../../src';
-// import { ethers } from 'ethers';
-import { ADDRESSES } from '../../src';
 import {
+  getWriteClient,
+  initClient,
+  unwrap,
+  wrap,
+  ADDRESSES,
   swapRouterV3,
   swapV3,
   createPoolV3,
@@ -10,7 +11,10 @@ import {
   addPositionLiquidityV3,
   removeLiquidityV3,
   collectFeeV3,
-} from '../../src';
+} from '.';
+// import { defaultChain } from '../../src';
+// import { ethers } from 'ethers';
+
 import { Token } from '@storyhunt/core';
 import { Trade } from '@storyhunt/v3-sdk';
 

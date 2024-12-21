@@ -14,8 +14,7 @@
     "sdk"
   ],
   "files": [
-    "dist",
-    "tests"
+    "dist"
   ],
   "scripts": {
     "test": "npm run ts-check && npm run test-jest",
