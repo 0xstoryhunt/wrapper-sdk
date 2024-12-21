@@ -12,8 +12,8 @@ import {
   removeLiquidityV3,
   collectFeeV3,
 } from '../../src';
-import { Token } from '@uniswap/sdk-core';
-import { Trade } from '@uniswap/v3-sdk';
+import { Token } from '@storyhunt/core';
+import { Trade } from '@storyhunt/v3-sdk';
 
 const privateKey = process.env.TEST_PRIVATE_KEY as `0x${string}`;
 const expectedAddress = process.env.TEST_PUBLIC_ADDRESS as `0x${string}`;
@@ -117,7 +117,7 @@ describe('Wrap and Unwrap Integration Tests', () => {
     // // Check that IP decreased and WIP increased
     // expect(finalIPBalance.value).toBeLessThan(initialIPBalance.value);
     // expect(finalWIPBalance.value).toBeGreaterThan(initialWIPBalance.value);
-  },60000);
+  }, 60000);
 
   test('Unwrap WIP back to IP', async () => {
     const unwrapAmount = BigInt(10 ** 18); // 1 WIP in wei
@@ -146,7 +146,7 @@ describe('Wrap and Unwrap Integration Tests', () => {
     // // Check that WIP decreased and IP increased
     // expect(finalWIPBalance.value).toBeLessThan(initialWIPBalance.value);
     // expect(finalIPBalance.value).toBeGreaterThan(initialIPBalance.value);
-  },60000);
+  }, 60000);
 });
 
 describe('Pool Operations', () => {

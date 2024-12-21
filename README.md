@@ -2,14 +2,14 @@
 
 # Overview
 
-The `@storyhunt/sdk` provides tools to interact with Uniswap V3-like functionality on the Story Odyssey Testnet. It enables:
+The `@storyhunt/wrapper-sdk` provides tools to interact with StoryHunt V3-like functionality on the Story Odyssey Testnet. It enables:
 
-- Finding liquidity routes and executing token swaps on Uniswap V3 pools.
+- Finding liquidity routes and executing token swaps on StoryHunt V3 pools.
 - Approving tokens for the V3 Swap Router or Non-Fungible Position Manager.
 - Adding liquidity to V3 pools with customizable price ranges.
 - Managing token balances, allowances, and other utilities.
 
-All functions, types, and constants can be accessed by importing from `@storyhunt/sdk`.
+All functions, types, and constants can be accessed by importing from `@storyhunt/wrapper-sdk`.
 
 This SDK works in Node.js and browser environments, provided the necessary environment variables and credentials are set.
 
@@ -18,13 +18,13 @@ This SDK works in Node.js and browser environments, provided the necessary envir
 ## Installation
 
 ```bash
-yarn add @storyhunt/sdk
+yarn add @storyhunt/wrapper-sdk
 ```
 
 or
 
 ```bash
-npm install @storyhunt/sdk
+npm install @storyhunt/wrapper-sdk
 ```
 
 # Initialization
@@ -40,7 +40,7 @@ Before using any of the routing or swap functions, you must initialize the SDK u
 ### Example Initialization
 
 ```tsx
-import { initClient, defaultChain } from '@storyhunt/sdk';
+import { initClient, defaultChain } from '@storyhunt/wrapper-sdk';
 
 // Option A: Using Private Key (loaded from environment, for example)
 await initClient({
@@ -72,7 +72,7 @@ Finds the best liquidity route between two tokens, returning an array of **`Trad
 **Example**:
 
 ```tsx
-import { swapRouterV3, ADDRESSES } from '@storyhunt/sdk';
+import { swapRouterV3, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 async function findRoute() {
   const routes = await swapRouterV3(
@@ -105,7 +105,7 @@ Executes a swap transaction given a trade object obtained from `swapRouterV3`.
 **Example**:
 
 ```tsx
-import { swapV3 } from '@storyhunt/sdk';
+import { swapV3 } from '@storyhunt/wrapper-sdk';
 
 // Assuming you have a Trade object from swapRouterV3
 async function executeSwap(
@@ -125,7 +125,7 @@ async function executeSwap(
 
 **Function**: `addLiquidityV3(params: {   token1_address:` 0x${string}`,   token2_address:` 0x${string}`,   amount1: bigint,   amount2: bigint,   amount1Min: bigint,   amount2Min: bigint,   tickLower: number,   tickUpper: number,   expire_time: bigint })`
 
-Allows adding liquidity to a Uniswap V3 pool with a specified price range:
+Allows adding liquidity to a StoryHunt V3 pool with a specified price range:
 
 - **`token1_address`/`token2_address`**: The token addresses for the two assets you’re adding. Use `WIP` for IP (native) deposits.
 - **`amount1`/`amount2`**: The amounts of tokens to deposit.
@@ -136,7 +136,7 @@ Allows adding liquidity to a Uniswap V3 pool with a specified price range:
 **Example**:
 
 ```tsx
-import { addLiquidityV3, ADDRESSES } from '@storyhunt/sdk';
+import { addLiquidityV3, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 async function provideLiquidity() {
   const txHash = await addLiquidityV3({
@@ -169,7 +169,7 @@ Removes liquidity from a position in a V3 pool.
 **Example**:
 
 ```tsx
-import { removeLiquidityV3, ADDRESSES } from '@storyhunt/sdk';
+import { removeLiquidityV3, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 async function withdrawLiquidity() {
   const txHash = await removeLiquidityV3(
@@ -198,7 +198,7 @@ Approves the V3 Swap Router to spend your tokens. Defaults to `MaxUint256` for u
 **Example**:
 
 ```tsx
-import { v3RoutertokenApproval, ADDRESSES } from '@storyhunt/sdk';
+import { v3RoutertokenApproval, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 await v3RoutertokenApproval(ADDRESSES.TOKENS.USDC.id);
 console.log('USDC approved for V3 Router!');
@@ -213,7 +213,7 @@ Approves the Non-Fungible Position Manager to spend your tokens. Defaults to `Ma
 **Example**:
 
 ```tsx
-import { v3PositionManagertokenApproval, ADDRESSES } from '@storyhunt/sdk';
+import { v3PositionManagertokenApproval, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 await v3PositionManagertokenApproval(ADDRESSES.TOKENS.WIP.id);
 console.log('WIP approved for Non-Fungible Position Manager!');
@@ -236,7 +236,7 @@ import {
   getTokenInfo,
   estimateGasCost,
   getAllowence,
-} from '@storyhunt/sdk';
+} from '@storyhunt/wrapper-sdk';
 
 const balance = await getTokenBalance();
 console.log('Native token balance:', balance.value.toString());
@@ -261,7 +261,7 @@ console.log('Estimated gas:', gas?.toString());
 
 ## Constants and Addresses
 
-`ADDRESSES` and `defaultChain` are available from `constants.ts`. `ADDRESSES` provides contract addresses for Odyssey Testnet, including token addresses and essential Uniswap V3 contracts:
+`ADDRESSES` and `defaultChain` are available from `constants.ts`. `ADDRESSES` provides contract addresses for Odyssey Testnet, including token addresses and essential StoryHunt V3 contracts:
 
 - `ADDRESSES.TOKENS.IP` and `ADDRESSES.TOKENS.WIP` represent the native IP token and its wrapped version (WIP).
 - Additional tokens: `JUTSU`, `vIP`, `USDC`, `FATE`.
@@ -270,28 +270,13 @@ You can use these addresses directly when calling functions that require token o
 
 ## Types
 
-The SDK leverages types from the Uniswap V3 SDK. Commonly used types include:
+The SDK leverages types from the StoryHunt [V3 SDK](https://www.npmjs.com/package/@storyhunt/v3-sdk) and [CORE SDK](https://www.npmjs.com/package/@storyhunt/core). Commonly used types include:
 
 - **`Trade<TInput, TOutput, TTradeType>`**: Represents a trade route between two tokens.
-  - `TInput` and `TOutput` are token types, typically `STORYHUNT.Token` (aliased from `@uniswap/sdk-core`) representing ERC-20 tokens or wrapped native tokens.
+  - `TInput` and `TOutput` are token types, typically `STORYHUNT.Token` (aliased from `@StoryHunt/sdk-core`) representing ERC-20 tokens or wrapped native tokens.
   - `TTradeType` can be `TradeType.EXACT_INPUT` or `TradeType.EXACT_OUTPUT`, indicating whether you know the exact input or output token amount.
 - **`Token`**: Represents a token with properties like `address`, `decimals`, `symbol`, and `name`.
 - **`Route`**: Represents a path of pools and tokens through which a swap can be executed.
-- **`Pool`**: Represents a Uniswap V3 pool with its state, including `token0`, `token1`, fee tier, and liquidity data.
+- **`Pool`**: Represents a StoryHunt V3 pool with its state, including `token0`, `token1`, fee tier, and liquidity data.
 
 All these types ensure type-safe interactions with pools, routes, and trades.
-
----
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Publishing to NPM
-
-We recommend using [np](https://github.com/sindresorhus/np).

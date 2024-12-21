@@ -1,5 +1,4 @@
-import * as STORYHUNT from '@uniswap/sdk-core';
-import { SwapRouter, Trade } from '@uniswap/v3-sdk';
+import { SwapRouter, Trade } from '@storyhunt/v3-sdk';
 import JSBI from 'jsbi';
 import { ADDRESSES, defaultChain } from '../constants';
 import {
@@ -12,9 +11,29 @@ import { formatUnits } from 'viem';
 import { SWAP_ROUTER_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
 import { ethers } from 'ethers';
+import { Percent, Token, TradeType } from '@storyhunt/core';
 
+/**
+ * Executes a swap using StoryHunt V3.
+ *
+ * @param trade - The trade object containing details of the swap, including input and output tokens and trade type.
+ * @returns A promise that resolves to a transaction hash, a transaction response, or an error.
+ *
+ * @throws Will throw an error if no connected address is found.
+ * @throws Will throw an error if the input token have wrong address.
+ * @throws Will throw an error if the balance/allowence is insufficient.
+ * @throws Will throw an error if the transaction fails on-chain.
+ * @throws Will throw an error for any other unknown issues.
+ *
+ * @example
+ * ```typescript
+ * const trade = new Trade(...);
+ * const result = await swapV3(trade);
+ * console.log(result);
+ * ```
+ */
 export async function swapV3(
-  trade: Trade<STORYHUNT.Token, STORYHUNT.Token, STORYHUNT.TradeType>
+  trade: Trade<Token, Token, TradeType>
 ): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
@@ -61,10 +80,7 @@ export async function swapV3(
     // }
 
     const { calldata, value } = SwapRouter.swapCallParameters(trade, {
-      slippageTolerance: new STORYHUNT.Percent(
-        JSBI.BigInt(50),
-        JSBI.BigInt(10000)
-      ), // 0.5%
+      slippageTolerance: new Percent(JSBI.BigInt(50), JSBI.BigInt(10000)), // 0.5%
       deadline: JSBI.BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // 20 minutes from now
       recipient: address,
     });
@@ -82,7 +98,6 @@ export async function swapV3(
     return hash;
 
     //unwrap if wip
-
   } catch (error) {
     console.error('Error in swap:', error);
     return error as unknown as Error;

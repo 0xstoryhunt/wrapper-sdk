@@ -1,20 +1,22 @@
 {
-  "name": "@storyhunt/sdk",
-  "author": "StoryHunt Team",
+  "name": "@storyhunt/wrapper-sdk",
+  "version": "1.0.0",
+  "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
-  "version": "0.1.0",
   "license": "MIT",
+  "repository": "https://github.com/0xstoryhunt/storyhunt-sdk.git",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
   "type": "module",
+  "keywords": [
+    "storyhunt",
+    "dex",
+    "sdk"
+  ],
   "files": [
     "dist",
     "tests"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/0xstoryhunt/sdk.git"
-  },
   "scripts": {
     "test": "npm run ts-check && npm run test-jest",
     "test-jest": "jest --passWithNoTests --updateSnapshot --coverage --detectOpenHandles",
@@ -23,17 +25,22 @@
     "test-esm": "node --experimental-vm-modules ./node_modules/.bin/jest --verbose",
     "build-tests": "tsup --config ./tsup.config.tests.ts",
     "ts-check": "tsc --noEmit",
-    "prettier-format": "prettier --write --no-error-on-unmatched-pattern \"./**/*\"",
     "lint": "eslint --ignore-path .gitignore --ext .ts src/",
     "size": "size-limit",
     "prepare": "npm run build-lib"
   },
-  "keywords": [
-    "storyhunt",
-    "dex",
-    "sdk",
-    "blockchain"
-  ],
+  "dependencies": {
+    "@ethersproject/address": "^5.7.0",
+    "@ethersproject/solidity": "^5.7.0",
+    "@storyhunt/core": "^1.0.0",
+    "@storyhunt/v3-sdk": "^1.0.0",
+    "@wagmi/core": "^2.6.5",
+    "ethers": "^6.13.4",
+    "jsbi": "^3.2.5",
+    "urql": "^4.2.1",
+    "viem": "^2.7.15",
+    "wagmi": "^2.12.25"
+  },
   "devDependencies": {
     "@tanstack/query-core": "^5.62.7",
     "@tanstack/react-query": "^5.62.7",
@@ -55,20 +62,14 @@
     "tsup": "^8.1.0",
     "typescript": "^5.4.5"
   },
+  "prettier": {
+    "printWidth": 120,
+    "semi": false,
+    "singleQuote": true
+  },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
-  "dependencies": {
-    "@ethersproject/address": "^5.7.0",
-    "@ethersproject/solidity": "^5.7.0",
-    "@uniswap/sdk-core": "^6.1.0",
-    "@uniswap/v3-sdk": "^3.19.0",
-    "@wagmi/core": "^2.6.5",
-    "ethers": "^6.13.4",
-    "jsbi": "^3.2.5",
-    "urql": "^4.2.1",
-    "viem": "^2.7.15",
-    "wagmi": "^2.12.25"
+    "registry": "https://registry.npmjs.org/",
+    "provenance": false
   }
 }

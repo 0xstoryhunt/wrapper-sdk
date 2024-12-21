@@ -1,4 +1,3 @@
-import * as STORYHUNT from '@uniswap/sdk-core';
 import {
   encodeSqrtRatioX96,
   MintOptions,
@@ -7,7 +6,7 @@ import {
   Pool,
   Position,
   priceToClosestTick,
-} from '@uniswap/v3-sdk';
+} from '@storyhunt/v3-sdk';
 import JSBI from 'jsbi';
 import { ADDRESSES, defaultChain } from '../constants';
 import {
@@ -30,7 +29,18 @@ import { formatUnits, parseUnits, zeroAddress } from 'viem';
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi';
 import { ethers } from 'ethers';
 import { POSITIONS_QUERY } from './queries';
+import { Token, Price, Percent, CurrencyAmount } from '@storyhunt/core';
 
+/**
+ * Creates a new StoryHunt V3 pool with the specified parameters.
+ *
+ * @param token0 - The address of the first token in the pool.
+ * @param token1 - The address of the second token in the pool.
+ * @param desirePrice - The desired price for the pool.
+ * @param fee - The fee tier for the pool (500, 3000, or 10000).
+ * @returns A promise that resolves to the transaction hash or an error.
+ * @throws Will throw an error if no connected address is found or if the pool already exists.
+ */
 export const createPoolV3 = async (
   token0: string,
   token1: string,
@@ -79,6 +89,19 @@ export const createPoolV3 = async (
   }
 };
 
+/**
+ * Adds liquidity to an existing StoryHunt V3 pool.
+ *
+ * @param token0 - The address of the first token in the pool.
+ * @param token1 - The address of the second token in the pool.
+ * @param fee - The fee tier for the pool (500, 3000, or 10000).
+ * @param amount0 - The amount of the first token to add.
+ * @param amount1 - The amount of the second token to add.
+ * @param highPrice - The upper price range for the liquidity position.
+ * @param lowPrice - The lower price range for the liquidity position.
+ * @returns A promise that resolves to the transaction hash, transaction response, or an error.
+ * @throws Will throw an error if no connected address is found, if the pool doesn't exist, if there is insufficient balance or allowance.
+ */
 export async function addLiquidityV3(
   token0: string,
   token1: string,
@@ -162,13 +185,13 @@ export async function addLiquidityV3(
       throw new Error(`Insufficient allowance for token ${token1Info.symbol}`);
     }
 
-    const token0Instance = new STORYHUNT.Token(
+    const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token0Info.address,
       token0Info.decimals,
       token0Info.symbol
     );
-    const token1Instance = new STORYHUNT.Token(
+    const token1Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token1Info.address,
       token1Info.decimals,
@@ -190,7 +213,7 @@ export async function addLiquidityV3(
       Math.min(
         nearestUsableTick(
           priceToClosestTick(
-            new STORYHUNT.Price(
+            new Price(
               token0Instance,
               token1Instance,
               JSBI.BigInt(10 ** token0Info.decimals),
@@ -201,7 +224,7 @@ export async function addLiquidityV3(
         ),
         nearestUsableTick(
           priceToClosestTick(
-            new STORYHUNT.Price(
+            new Price(
               token0Instance,
               token1Instance,
               JSBI.BigInt(10 ** token0Info.decimals),
@@ -214,7 +237,7 @@ export async function addLiquidityV3(
       Math.max(
         nearestUsableTick(
           priceToClosestTick(
-            new STORYHUNT.Price(
+            new Price(
               token0Instance,
               token1Instance,
               JSBI.BigInt(10 ** token0Info.decimals),
@@ -225,7 +248,7 @@ export async function addLiquidityV3(
         ),
         nearestUsableTick(
           priceToClosestTick(
-            new STORYHUNT.Price(
+            new Price(
               token0Instance,
               token1Instance,
               JSBI.BigInt(10 ** token0Info.decimals),
@@ -248,7 +271,7 @@ export async function addLiquidityV3(
 
     const mintLiquidityOptions: MintOptions = {
       deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
-      slippageTolerance: new STORYHUNT.Percent(50, 10_000), // 0.5%
+      slippageTolerance: new Percent(50, 10_000), // 0.5%
       recipient: address,
       // createPool: true,
     };
@@ -273,6 +296,15 @@ export async function addLiquidityV3(
   }
 }
 
+/**
+ * Adds liquidity to an existing StoryHunt V3 position.
+ *
+ * @param positionId - The ID of the position to add liquidity to.
+ * @param amount0 - The amount of the first token to add.
+ * @param amount1 - The amount of the second token to add.
+ * @returns A promise that resolves to the transaction hash, transaction response, or an error.
+ * @throws Will throw an error if no connected address is found, if the position is not found, if there is insufficient balance or allowance.
+ */
 export async function addPositionLiquidityV3(
   positionId: number,
   amount0: number,
@@ -349,13 +381,13 @@ export async function addPositionLiquidityV3(
       throw new Error(`Insufficient allowance for token ${token1.symbol}`);
     }
 
-    const token0Instance = new STORYHUNT.Token(
+    const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token0.id,
       parseInt(token0.decimals),
       token0.symbol
     );
-    const token1Instance = new STORYHUNT.Token(
+    const token1Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token1.id,
       parseInt(token1.decimals),
@@ -382,7 +414,7 @@ export async function addPositionLiquidityV3(
 
     const addLiquidityOptions = {
       deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
-      slippageTolerance: new STORYHUNT.Percent(50, 10_000), // 0.5%
+      slippageTolerance: new Percent(50, 10_000), // 0.5%
       tokenId: positionId,
     };
 
@@ -406,6 +438,14 @@ export async function addPositionLiquidityV3(
   }
 }
 
+/**
+ * Removes liquidity from an existing StoryHunt V3 position.
+ *
+ * @param positionId - The ID of the position to remove liquidity from.
+ * @param percentageToRemove - The percentage of liquidity to remove.
+ * @returns A promise that resolves to the transaction hash, transaction response, or an error.
+ * @throws Will throw an error if no connected address is found, if the position is not found.
+ */
 export async function removeLiquidityV3(
   positionId: number,
   percentageToRemove: number
@@ -430,13 +470,13 @@ export async function removeLiquidityV3(
     const { token0, token1, liquidity, tickLower, tickUpper, pool } =
       positionData.data?.position;
 
-    const token0Instance = new STORYHUNT.Token(
+    const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token0.id,
       parseInt(token0.decimals),
       token0.symbol
     );
-    const token1Instance = new STORYHUNT.Token(
+    const token1Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token1.id,
       parseInt(token1.decimals),
@@ -461,18 +501,12 @@ export async function removeLiquidityV3(
 
     const removeLiquidityOptions = {
       deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
-      slippageTolerance: new STORYHUNT.Percent(50, 10_000), // 0.5%
+      slippageTolerance: new Percent(50, 10_000), // 0.5%
       tokenId: positionId,
-      liquidityPercentage: new STORYHUNT.Percent(percentageToRemove, 100),
+      liquidityPercentage: new Percent(percentageToRemove, 100),
       collectOptions: {
-        expectedCurrencyOwed0: STORYHUNT.CurrencyAmount.fromRawAmount(
-          token0Instance,
-          0
-        ),
-        expectedCurrencyOwed1: STORYHUNT.CurrencyAmount.fromRawAmount(
-          token1Instance,
-          0
-        ),
+        expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(token0Instance, 0),
+        expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(token1Instance, 0),
         recipient: address,
       },
     };
@@ -497,6 +531,13 @@ export async function removeLiquidityV3(
   }
 }
 
+/**
+ * Collects fees from an existing StoryHunt V3 position.
+ *
+ * @param positionId - The ID of the position to collect fees from.
+ * @returns A promise that resolves to the transaction hash, transaction response, or an error.
+ * @throws Will throw an error if no connected address is found, if the position is not found.
+ */
 export async function collectFeeV3(
   positionId: number
 ): Promise<string | ethers.TransactionResponse | Error> {
@@ -518,13 +559,13 @@ export async function collectFeeV3(
     if (!positionData.data?.position) throw new Error('Position not found');
     const { token0, token1 } = positionData.data?.position;
 
-    const token0Instance = new STORYHUNT.Token(
+    const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token0.id,
       parseInt(token0.decimals),
       token0.symbol
     );
-    const token1Instance = new STORYHUNT.Token(
+    const token1Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token1.id,
       parseInt(token1.decimals),
@@ -544,11 +585,11 @@ export async function collectFeeV3(
 
     const collectOptions = {
       tokenId: positionId,
-      expectedCurrencyOwed0: STORYHUNT.CurrencyAmount.fromRawAmount(
+      expectedCurrencyOwed0: CurrencyAmount.fromRawAmount(
         token0Instance,
         JSBI.BigInt(amount0Raw)
       ),
-      expectedCurrencyOwed1: STORYHUNT.CurrencyAmount.fromRawAmount(
+      expectedCurrencyOwed1: CurrencyAmount.fromRawAmount(
         token1Instance,
         JSBI.BigInt(amount1Raw)
       ),

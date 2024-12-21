@@ -1,2 +1,0 @@
-@storyhunt/v3-sdk/=node_modules/@uniswap/v3-sdk/
-@storyhunt/sdk-core/=node_modules/@uniswap/sdk-core/

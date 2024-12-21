@@ -1,5 +1,4 @@
-import { Pool, Tick, TickListDataProvider, Trade } from '@uniswap/v3-sdk';
-import * as STORYHUNT from '@uniswap/sdk-core';
+import { Pool, Tick, TickListDataProvider, Trade } from '@storyhunt/v3-sdk';
 import JSBI from 'jsbi';
 
 import { ADDRESSES, defaultChainId } from '../constants';
@@ -7,15 +6,25 @@ import { getTokenInfo } from '../utils';
 import { GraphPoolResponse, TokenInfo } from './types';
 import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
 import { executeGraphQuery } from '../config';
+import { Token, TradeType, CurrencyAmount } from '@storyhunt/core';
 
+/**
+ * Executes a swap using the StoryHunt V3 SDK.
+ *
+ * @param tokenIn - The address of the input token.
+ * @param tokenOut - The address of the output token.
+ * @param amount - The amount of the input or output token, depending on the `exactIn` parameter.
+ * @param exactIn - If true, the swap is executed with an exact input amount. If false, the swap is executed with an exact output amount.
+ * @returns A promise that resolves to an array of `Trade` objects or an `Error`.
+ *
+ * @throws Will throw an error if the swap fails.
+ */
 export async function swapRouterV3(
   tokenIn: string,
   tokenOut: string,
   amount: bigint,
   exactIn: boolean
-): Promise<
-  Trade<STORYHUNT.Token, STORYHUNT.Token, STORYHUNT.TradeType>[] | Error
-> {
+): Promise<Trade<Token, Token, TradeType>[] | Error> {
   try {
     let tokenInInfo: TokenInfo | undefined;
     let tokenOutInfo: TokenInfo | undefined;
@@ -32,14 +41,14 @@ export async function swapRouterV3(
 
     const currencyIn =
       tokenIn === ADDRESSES.TOKENS.IP.id
-        ? new STORYHUNT.Token(
+        ? new Token(
             defaultChainId,
             ADDRESSES.TOKENS.WIP.id as `0x${string}`,
             ADDRESSES.TOKENS.WIP.decimals,
             ADDRESSES.TOKENS.WIP.symbol,
             ADDRESSES.TOKENS.WIP.name
           )
-        : new STORYHUNT.Token(
+        : new Token(
             defaultChainId,
             tokenIn as `0x${string}`,
             tokenInInfo!.decimals,
@@ -49,14 +58,14 @@ export async function swapRouterV3(
 
     const currencyOut =
       tokenOut === ADDRESSES.TOKENS.IP.id
-        ? new STORYHUNT.Token(
+        ? new Token(
             defaultChainId,
             ADDRESSES.TOKENS.WIP.id as `0x${string}`,
             ADDRESSES.TOKENS.WIP.decimals,
             ADDRESSES.TOKENS.WIP.symbol,
             ADDRESSES.TOKENS.WIP.name
           )
-        : new STORYHUNT.Token(
+        : new Token(
             defaultChainId,
             tokenOut as `0x${string}`,
             tokenOutInfo!.decimals,
@@ -96,7 +105,7 @@ export async function swapRouterV3(
             return;
           }
 
-          const tokenA = new STORYHUNT.Token(
+          const tokenA = new Token(
             defaultChainId,
             pool.token0.id as `0x${string}`,
             Number(pool.token0.decimals),
@@ -104,7 +113,7 @@ export async function swapRouterV3(
             pool.token0.name
           );
 
-          const tokenB = new STORYHUNT.Token(
+          const tokenB = new Token(
             defaultChainId,
             pool.token1.id as `0x${string}`,
             Number(pool.token1.decimals),
@@ -149,7 +158,7 @@ export async function swapRouterV3(
     if (exactIn) {
       return await Trade.bestTradeExactIn(
         allPools,
-        STORYHUNT.CurrencyAmount.fromRawAmount(
+        CurrencyAmount.fromRawAmount(
           currencyIn,
           JSBI.BigInt(amount.toString())
         ),
@@ -161,7 +170,7 @@ export async function swapRouterV3(
         (await Trade.bestTradeExactOut(
           allPools,
           currencyIn,
-          STORYHUNT.CurrencyAmount.fromRawAmount(
+          CurrencyAmount.fromRawAmount(
             currencyOut,
             JSBI.BigInt(amount.toString())
           ),

@@ -1,5 +1,8 @@
 import JSBI from 'jsbi';
 
+/**
+ * Represents a token in the graph with its properties.
+ */
 export interface GraphToken {
   id: string;
   symbol: string;
@@ -7,6 +10,9 @@ export interface GraphToken {
   name: string;
 }
 
+/**
+ * Represents a tick in a graph, containing various properties related to liquidity and pricing.
+ */
 export interface GraphTick {
   id: string;
   poolAddress: string;
@@ -17,6 +23,9 @@ export interface GraphTick {
   price1: string;
 }
 
+/**
+ * Represents a pool in the graph with its properties.
+ */
 export interface GraphPool {
   id: string;
   totalValueLockedToken0: string;
@@ -38,14 +47,19 @@ export interface GraphPool {
   feesUSD: string;
 }
 
+/**
+ * Represents the response containing an array of graph pools.
+ */
 export interface GraphPoolResponse {
   pools: GraphPool[];
 }
 
+/**
+ * Represents a token with its properties.
+ */
 interface Token {
   decimals: string;
   feesUSD: string;
-  derivedETH: string;
   name: string;
   id: string;
   poolCount: string;
@@ -61,11 +75,17 @@ interface Token {
   tokenDayData: TokenDayData[];
 }
 
+/**
+ * Represents the daily data of a token.
+ */
 interface TokenDayData {
   high: string;
   low: string;
 }
 
+/**
+ * Represents the data of a position in the graph.
+ */
 export interface PositionData {
   id: string;
   owner: string;
@@ -85,9 +105,16 @@ export interface PositionData {
   tickUpper: GraphTick;
 }
 
+/**
+ * Represents the response containing position data.
+ */
 export interface GraphPositionResponse {
   position: PositionData;
 }
+
+/**
+ * Represents information about a token.
+ */
 export interface TokenInfo {
   decimals: number;
   symbol: string;
@@ -95,6 +122,9 @@ export interface TokenInfo {
   address: string;
 }
 
+/**
+ * Represents information about a pool.
+ */
 export interface PoolInfo {
   fee: number;
   state: {
@@ -108,6 +138,9 @@ export interface PoolInfo {
   sqrtPriceX96: JSBI;
 }
 
+/**
+ * Represents the parameters for a gas transaction.
+ */
 export interface GasParams {
   address: `0x${string}`;
   abi: any[];

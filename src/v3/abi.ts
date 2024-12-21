@@ -1,3 +1,6 @@
+/**
+ * ABI for the Nonfungible Position Manager contract.
+ */
 export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
   {
     inputs: [
@@ -538,7 +541,7 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
   },
   {
     inputs: [],
-    name: 'refundETH',
+    name: 'refundIP',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -1222,6 +1225,9 @@ export const NONFUNGIBLE_POSITION_MANAGER_ABI = [
   },
 ];
 
+/**
+ * ABI for the Swap Router contract.
+ */
 export const SWAP_ROUTER_ABI = [
   {
     inputs: [
@@ -1458,7 +1464,7 @@ export const SWAP_ROUTER_ABI = [
   },
   {
     inputs: [],
-    name: 'refundETH',
+    name: 'refundIP',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -1788,6 +1794,9 @@ export const SWAP_ROUTER_ABI = [
   },
 ];
 
+/**
+ * ABI for the WIP token contract.
+ */
 export const WIP_ABI = [
   {
     inputs: [],
@@ -2217,6 +2226,9 @@ export const WIP_ABI = [
   },
 ];
 
+/**
+ * ABI for the Pool Factory contract.
+ */
 export const POOL_FACTORY_ABI = [
   {
     inputs: [
@@ -2454,6 +2466,9 @@ export const POOL_FACTORY_ABI = [
   },
 ];
 
+/**
+ * ABI for the Pool contract.
+ */
 export const POOL_ABI = [
   {
     inputs: [

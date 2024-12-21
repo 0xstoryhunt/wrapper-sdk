@@ -6,7 +6,7 @@ import {
   WalletClient,
 } from 'viem';
 import { erc20Abi } from 'viem';
-import { MaxUint256 } from '@uniswap/sdk-core';
+import { MaxUint256 } from '@storyhunt/core';
 import { ADDRESSES, defaultChain } from './constants';
 import { readContract, writeContract } from 'viem/actions';
 import {
@@ -24,6 +24,10 @@ import { USER_POSITIONS_QUERY } from './v3/queries';
 
 /**
  * Estimates gas cost for a given contract call, applying an optional percentage.
+ *
+ * @param gasParams - The parameters required for estimating gas.
+ * @param gasPercentage - The percentage to adjust the estimated gas by (default is 100).
+ * @returns The estimated gas cost adjusted by the given percentage, or undefined if an error occurs.
  */
 export const estimateGasCost = async (
   gasParams: GasParams,
@@ -59,6 +63,10 @@ export const estimateGasCost = async (
 /**
  * Approves a spender to use a certain amount of tokens on behalf of the user's account.
  * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
+ *
+ * @param token - The address of the token to approve.
+ * @param spender - The address of the spender to approve.
+ * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
 export const tokenApproval = async (
   token: string,
@@ -89,6 +97,9 @@ export const tokenApproval = async (
 /**
  * Approves V3_SWAP_ROUTER to use a certain amount of tokens on behalf of the user's account.
  * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
+ *
+ * @param token - The address of the token to approve.
+ * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
 export const v3RoutertokenApproval = async (
   token: string,
@@ -118,6 +129,9 @@ export const v3RoutertokenApproval = async (
 /**
  * Approves V3_NONFUNGIBLE_POSITION_MANAGER to use a certain amount of tokens on behalf of the user's account.
  * Uses universalWriteContract to handle both WalletClient and ethers.Signer.
+ *
+ * @param token - The address of the token to approve.
+ * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
 export const v3PositionManagertokenApproval = async (
   token: string,
@@ -146,6 +160,10 @@ export const v3PositionManagertokenApproval = async (
 
 /**
  * Retrieves the allowance of a token for a given spender.
+ *
+ * @param token - The address of the token.
+ * @param spender - The address of the spender.
+ * @returns The allowance of the token for the given spender.
  */
 export const getAllowence = async (token: string, spender: string) => {
   const publicClient = getPublicClient();
@@ -164,6 +182,11 @@ export const getAllowence = async (token: string, spender: string) => {
 
 /**
  * Retrieves the pool of a token pair.
+ *
+ * @param token0 - The address of the first token.
+ * @param token1 - The address of the second token.
+ * @param fee - The fee tier of the pool (500, 3000, or 10000).
+ * @returns The address of the pool for the given token pair and fee tier.
  */
 export const getPool = async (
   token0: `0x${string}`,
@@ -187,6 +210,9 @@ export const getPool = async (
 /**
  * Retrieves the balance of the user's account. If the token is the native IP token,
  * it returns the native balance. Otherwise, it returns the ERC-20 token balance.
+ *
+ * @param token - The address of the token (default is the native IP token).
+ * @returns An object containing the balance value and decimals.
  */
 export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
   const publicClient = getPublicClient();
@@ -226,6 +252,9 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
 
 /**
  * Retrieves token information such as decimals, symbol, and name.
+ *
+ * @param address - The address of the token.
+ * @returns An object containing the token information.
  */
 export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
   const publicClient = getPublicClient();
@@ -252,6 +281,9 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
 
 /**
  * Retrieves pool information such as fee, state, liquidity, tick, ticks, sqrtPriceX96.
+ *
+ * @param address - The address of the pool.
+ * @returns An object containing the pool information.
  */
 export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
   const publicClient = getPublicClient();
@@ -312,6 +344,9 @@ type TransactionParams = {
 
 /**
  * Type guard to check if the client is a viem WalletClient.
+ *
+ * @param client - The client to check.
+ * @returns True if the client is a viem WalletClient, false otherwise.
  */
 function isWalletClient(
   client: WalletClient | ethers.Signer
@@ -323,16 +358,22 @@ function isWalletClient(
  * universalWriteContract:
  * Executes a contract write operation using either a viem WalletClient or an ethers Signer.
  *
- * @param walletClient - The write-capable client (WalletClient or ethers Signer).
+ * @param walletClient - The write-capable client (WalletClient or ethers.Signer).
  * @param params - The contract call parameters.
- *
  * @returns The transaction hash (if viem walletClient) or an ethers TransactionResponse (if ethers Signer).
  */
 export async function universalWriteContract(
   walletClient: WalletClient | ethers.Signer,
   params: ContractCallParams
 ): Promise<string | ethers.TransactionResponse> {
-  const { address, abi, functionName, args = [], value, chain = defaultChain } = params;
+  const {
+    address,
+    abi,
+    functionName,
+    args = [],
+    value,
+    chain = defaultChain,
+  } = params;
   console.log('is wallet client');
   // Estimate gas
   const estimatedGas = await estimateGasCost({
@@ -378,16 +419,15 @@ export async function universalWriteContract(
  * universalSendTransaction:
  * Sends a transaction using either a viem WalletClient or an ethers Signer.
  *
- * @param walletClient - The write-capable client (WalletClient or ethers Signer).
+ * @param walletClient - The write-capable client (WalletClient or ethers.Signer).
  * @param params - The transaction parameters.
- *
  * @returns The transaction hash (if viem walletClient) or an ethers TransactionResponse (if ethers Signer).
  */
 export async function universalSendTransaction(
   walletClient: WalletClient | ethers.Signer,
   params: TransactionParams
 ): Promise<string | ethers.TransactionResponse> {
-  const { to, value, gasLimit, data, chain = defaultChain  } = params;
+  const { to, value, gasLimit, data, chain = defaultChain } = params;
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
@@ -413,15 +453,16 @@ export async function universalSendTransaction(
   }
 }
 
-
 /**
  * Wrap IP into WIP (calls "deposit" on the WIP contract).
- * @param value The amount of native IP to wrap, in wei (bigint).
+ *
+ * @param value - The amount of native IP to wrap, in wei (bigint).
+ * @returns The transaction hash of the wrap operation.
  */
 export async function wrap(value: bigint) {
   const writeClient = getWriteClient();
   const txHash = await universalWriteContract(writeClient, {
-    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`, 
+    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
     abi: WIP_ABI,
     functionName: 'deposit',
     args: [],
@@ -433,7 +474,9 @@ export async function wrap(value: bigint) {
 
 /**
  * Unwrap WIP back to native IP (calls "withdraw" on the WIP contract).
- * @param value The amount of WIP to unwrap, in wei (bigint).
+ *
+ * @param value - The amount of WIP to unwrap, in wei (bigint).
+ * @returns The transaction hash of the unwrap operation.
  */
 export async function unwrap(value: bigint) {
   const writeClient = getWriteClient();
@@ -442,20 +485,24 @@ export async function unwrap(value: bigint) {
     abi: WIP_ABI,
     functionName: 'withdraw',
     args: [value],
-    value : BigInt(0),
+    value: BigInt(0),
   });
 
   return txHash;
 }
 
-
+/**
+ * Retrieves the user's pools in V3.
+ *
+ * @returns The user's pools in V3.
+ */
 export async function getUserPoolsV3(): Promise<any> {
   const address = getAccountAddress();
   const userPoolsResults = await executeGraphQuery<GraphPoolResponse>(
-        USER_POSITIONS_QUERY,
-        {
-          userId: address?.toLowerCase()
-        }
-      );
+    USER_POSITIONS_QUERY,
+    {
+      userId: address?.toLowerCase(),
+    }
+  );
   return userPoolsResults;
 }
