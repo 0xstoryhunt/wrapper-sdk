@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { getWriteClient, initClient, unwrap, wrap } from '../../src';
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
@@ -15,8 +14,8 @@ import {
 import { Token } from '@storyhunt/core';
 import { Trade } from '@storyhunt/v3-sdk';
 
-const privateKey = process.env.TEST_PRIVATE_KEY as `0x${string}`;
-const expectedAddress = process.env.TEST_PUBLIC_ADDRESS as `0x${string}`;
+const privateKey = '0x...' as `0x${string}`;
+const expectedAddress = '0x...' as `0x${string}`;
 
 beforeAll(async () => {
   // 1. Setup: Initialize SDK with Wallet Client using Viem(Private Key)
