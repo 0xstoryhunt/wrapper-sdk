@@ -17,14 +17,10 @@
     "dist"
   ],
   "scripts": {
-    "test": "npm run ts-check && npm run test-jest",
-    "test-jest": "jest --passWithNoTests --updateSnapshot --coverage --detectOpenHandles",
-    "build": "npm run ts-check && npm run build-lib && npm run build-tests",
+    "build": "npm run ts-check && npm run build-lib",
     "build-lib": "tsup --config ./tsup.config.lib.ts",
-    "test-esm": "node --experimental-vm-modules ./node_modules/.bin/jest --verbose",
-    "build-tests": "tsup --config ./tsup.config.tests.ts",
+    "test": "node --experimental-vm-modules ./node_modules/.bin/jest --verbose",
     "ts-check": "tsc --noEmit",
-    "lint": "eslint --ignore-path .gitignore --ext .ts src/",
     "size": "size-limit",
     "prepare": "npm run build-lib"
   },
