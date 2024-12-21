@@ -1,12 +1,12 @@
-import { createClient, fetchExchange } from 'urql';
 import { Pool, Tick, TickListDataProvider, Trade } from '@uniswap/v3-sdk';
 import * as STORYHUNT from '@uniswap/sdk-core';
 import JSBI from 'jsbi';
 
-import { ADDRESSES, defaultChainId, SUBGRAPH_URL } from '../constants';
+import { ADDRESSES, defaultChainId } from '../constants';
 import { getTokenInfo } from '../utils';
 import { GraphPoolResponse, TokenInfo } from './types';
 import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
+import { executeGraphQuery } from '../config';
 
 export async function swapRouterV3(
   tokenIn: string,
@@ -64,29 +64,16 @@ export async function swapRouterV3(
             tokenOutInfo!.name
           );
 
-    const graphClient = createClient({
-      url: SUBGRAPH_URL,
-      exchanges: [fetchExchange],
-    });
+    const topPoolResult =
+      await executeGraphQuery<GraphPoolResponse>(POOL_QUERY);
 
-    const topPoolResult = await graphClient
-      .query<GraphPoolResponse>(
-        POOL_QUERY,
-        {},
-        { requestPolicy: 'network-only' }
-      )
-      .toPromise();
-
-    const tokenPoolResult = await graphClient
-      .query<GraphPoolResponse>(
-        POOLWTOKEN_QUERY,
-        {
-          token0: currencyIn.address.toLowerCase(),
-          token1: currencyOut.address.toLowerCase(),
-        },
-        { requestPolicy: 'network-only' }
-      )
-      .toPromise();
+    const tokenPoolResult = await executeGraphQuery<GraphPoolResponse>(
+      POOLWTOKEN_QUERY,
+      {
+        token0: currencyIn.address.toLowerCase(),
+        token1: currencyOut.address.toLowerCase(),
+      }
+    );
 
     const allPoolsData = [
       ...(topPoolResult.data?.pools || []),
@@ -157,7 +144,7 @@ export async function swapRouterV3(
       )
     ).filter((p): p is Pool => p !== undefined);
 
-    //console.log('All pools:', allPools);
+    console.log('All pools:', allPools.length);
 
     if (exactIn) {
       return await Trade.bestTradeExactIn(

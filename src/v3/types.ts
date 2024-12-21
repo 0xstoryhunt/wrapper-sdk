@@ -86,7 +86,7 @@ export interface PositionData {
 }
 
 export interface GraphPositionResponse {
-  pools: GraphPool[];
+  position: PositionData;
 }
 export interface TokenInfo {
   decimals: number;

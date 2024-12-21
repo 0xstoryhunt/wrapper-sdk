@@ -8,7 +8,8 @@ import {
 } from 'viem';
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts';
 import { Signer } from 'ethers';
-import { defaultChain } from './constants';
+import { defaultChain, SUBGRAPH_URL } from './constants';
+import { createClient, fetchExchange } from 'urql';
 
 let publicClient: PublicClient | undefined;
 let walletClient: WalletClient | undefined;
@@ -86,4 +87,24 @@ export function getAccountAddress(): string | undefined {
  */
 export function getAccount(): Account {
   return toAccount(accountAddress as Address);
+}
+
+/**
+ * Get graph client
+ */
+export const graphClient = createClient({
+  url: SUBGRAPH_URL,
+  exchanges: [fetchExchange],
+});
+
+/**
+ * Execute graph query
+ */
+export async function executeGraphQuery<T>(
+  query: unknown,
+  variables: Record<string, any> = {}
+) {
+  return await graphClient
+    .query<T>(query, variables, { requestPolicy: 'network-only' })
+    .toPromise();
 }

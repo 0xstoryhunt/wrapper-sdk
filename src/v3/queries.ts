@@ -54,7 +54,7 @@ query Pool($token0: ID!, $token1: ID!) {
 }
 `;
 
-// query users pools
+// query users position
 export const USER_POSITIONS_QUERY = `
   query MyQuery($userId: Bytes!) {
     positions(where: { owner: $userId }, orderBy: liquidity, orderDirection: desc) {
@@ -144,6 +144,100 @@ export const USER_POSITIONS_QUERY = `
       }
     }
   }
+`;
+
+// query position data
+export const POSITIONS_QUERY = `
+query MyQuery($positionId: ID!, $owner: Bytes!) {
+  positions(where: {id: $positionId, owner: $owner}){
+    id
+      owner
+      collectedFeesToken0
+      collectedFeesToken1
+      withdrawnToken0
+      withdrawnToken1
+      depositedToken0
+      depositedToken1
+      feeGrowthInside1LastX128
+      feeGrowthInside0LastX128
+      liquidity
+      token0 {
+        decimals
+        feesUSD
+        derivedETH
+        name
+        id
+        poolCount
+        totalValueLocked
+        symbol
+        totalSupply
+        totalValueLockedUSD
+        totalValueLockedUSDUntracked
+        txCount
+        untrackedVolumeUSD
+        volumeUSD
+        volume
+        tokenDayData {
+          high
+          low
+        }
+      }
+      token1 {
+        decimals
+        feesUSD
+        derivedETH
+        name
+        id
+        poolCount
+        totalValueLocked
+        symbol
+        totalSupply
+        totalValueLockedUSD
+        totalValueLockedUSDUntracked
+        txCount
+        untrackedVolumeUSD
+        volumeUSD
+        volume
+      }
+     
+       pool {
+        id
+        feeTier
+        liquidity
+        token0Price
+        token1Price
+        totalValueLockedToken0
+        totalValueLockedToken1
+        volumeToken0
+        volumeToken1
+        sqrtPrice
+        token0Price
+        token1Price
+        tick
+        ticks {
+          id
+        }
+      }
+      tickLower {
+        id
+        liquidityNet
+        liquidityGross
+        poolAddress
+        price0
+        price1
+        tickIdx
+      }
+      tickUpper {
+        id
+        liquidityNet
+        liquidityGross
+        poolAddress
+        price0
+        price1
+        tickIdx
+      }
+}
+}
 `;
 
 export const TOP_POOLS_QUERY = `

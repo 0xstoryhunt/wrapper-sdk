@@ -5,17 +5,17 @@ import { ADDRESSES, defaultChain } from '../constants';
 import {
   getTokenBalance,
   getAllowence,
-  estimateGasCost,
   universalWriteContract,
 } from '../utils';
 
 import { formatUnits } from 'viem';
 import { SWAP_ROUTER_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
+import { ethers } from 'ethers';
 
-export const swapV3 = async (
+export async function swapV3(
   trade: Trade<STORYHUNT.Token, STORYHUNT.Token, STORYHUNT.TradeType>
-) => {
+): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -76,6 +76,6 @@ export const swapV3 = async (
     return hash;
   } catch (error) {
     console.error('Error in swap:', error);
-    return error;
+    return error as unknown as Error;
   }
-};
+}

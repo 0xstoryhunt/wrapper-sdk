@@ -20,15 +20,21 @@ import {
   universalWriteContract,
 } from '../utils';
 
-import { getAccountAddress, getWriteClient } from '../config';
-import { PositionData } from './types';
+import {
+  executeGraphQuery,
+  getAccountAddress,
+  getWriteClient,
+} from '../config';
+import { GraphPositionResponse } from './types';
 import { formatUnits, parseUnits, zeroAddress } from 'viem';
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi';
+import { ethers } from 'ethers';
+import { POSITIONS_QUERY } from './queries';
 
 export const createPoolV3 = async (
   token0: string,
   token1: string,
-  desirePrice: string,
+  desirePrice: number,
   fee: 500 | 3000 | 10000
 ) => {
   const walletClient = getWriteClient();
@@ -51,7 +57,7 @@ export const createPoolV3 = async (
     const token1Info = await getTokenInfo(token1 as `0x${string}`);
 
     const sqrtPriceX96 = encodeSqrtRatioX96(
-      JSBI.BigInt(+desirePrice * 10 ** token0Info.decimals),
+      JSBI.BigInt(desirePrice * 10 ** token0Info.decimals),
       JSBI.BigInt(1 * 10 ** token1Info.decimals)
     );
     console.log('Initializing with sqrtPriceX96:', sqrtPriceX96.toString());
@@ -69,11 +75,11 @@ export const createPoolV3 = async (
     return hash;
   } catch (error) {
     console.error('Error in pool creation:', error);
-    return error;
+    return error as unknown as Error;
   }
 };
 
-export const addLiquidityV3 = async (
+export async function addLiquidityV3(
   token0: string,
   token1: string,
   fee: 500 | 3000 | 10000,
@@ -81,7 +87,7 @@ export const addLiquidityV3 = async (
   amount1: number,
   highPrice: number,
   lowPrice: number
-) => {
+): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -263,15 +269,15 @@ export const addLiquidityV3 = async (
     return hash;
   } catch (error) {
     console.error('Error in minting liquidity:', error);
-    return error;
+    return error as unknown as Error;
   }
-};
+}
 
-export const addPositionLiquidityV3 = async (
-  position: PositionData,
+export async function addPositionLiquidityV3(
+  positionId: number,
   amount0: number,
   amount1: number
-) => {
+): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -280,7 +286,17 @@ export const addPositionLiquidityV3 = async (
       throw new Error('No connected address found');
     }
 
-    const { token0, token1, tickLower, tickUpper, pool } = position;
+    //get positin data
+    const positionData = await executeGraphQuery<GraphPositionResponse>(
+      POSITIONS_QUERY,
+      {
+        positionId,
+        owner: address.toLowerCase(),
+      }
+    );
+    if (!positionData.data?.position) throw new Error('Position not found');
+    const { token0, token1, tickLower, tickUpper, pool } =
+      positionData.data?.position;
 
     // Check balance
     const token0Balance = await getTokenBalance(
@@ -367,7 +383,7 @@ export const addPositionLiquidityV3 = async (
     const addLiquidityOptions = {
       deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
       slippageTolerance: new STORYHUNT.Percent(50, 10_000), // 0.5%
-      tokenId: position.id,
+      tokenId: positionId,
     };
 
     const { calldata, value } = NonfungiblePositionManager.addCallParameters(
@@ -386,14 +402,14 @@ export const addPositionLiquidityV3 = async (
     return hash;
   } catch (error) {
     console.error('Error in adding liquidity:', error);
-    return error;
+    return error as unknown as Error;
   }
-};
+}
 
-export const removeLiquidityV3 = async (
-  position: PositionData,
+export async function removeLiquidityV3(
+  positionId: number,
   percentageToRemove: number
-) => {
+): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -401,7 +417,18 @@ export const removeLiquidityV3 = async (
     if (!address) {
       throw new Error('No connected address found');
     }
-    const { token0, token1, liquidity, tickLower, tickUpper, pool } = position;
+
+    //get positin data
+    const positionData = await executeGraphQuery<GraphPositionResponse>(
+      POSITIONS_QUERY,
+      {
+        positionId,
+        owner: address.toLowerCase(),
+      }
+    );
+    if (!positionData.data?.position) throw new Error('Position not found');
+    const { token0, token1, liquidity, tickLower, tickUpper, pool } =
+      positionData.data?.position;
 
     const token0Instance = new STORYHUNT.Token(
       ADDRESSES.CHAIN_ID,
@@ -435,7 +462,7 @@ export const removeLiquidityV3 = async (
     const removeLiquidityOptions = {
       deadline: Math.floor(Date.now() / 1000) + 60 * 20, // 20 minutes from now
       slippageTolerance: new STORYHUNT.Percent(50, 10_000), // 0.5%
-      tokenId: position.id,
+      tokenId: positionId,
       liquidityPercentage: new STORYHUNT.Percent(percentageToRemove, 100),
       collectOptions: {
         expectedCurrencyOwed0: STORYHUNT.CurrencyAmount.fromRawAmount(
@@ -466,11 +493,13 @@ export const removeLiquidityV3 = async (
     return hash;
   } catch (error) {
     console.error('Error in removing liquidity:', error);
-    return error;
+    return error as unknown as Error;
   }
-};
+}
 
-export const collectFeeV3 = async (position: PositionData) => {
+export async function collectFeeV3(
+  positionId: number
+): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient();
   const address = getAccountAddress();
 
@@ -478,7 +507,16 @@ export const collectFeeV3 = async (position: PositionData) => {
     if (!address) {
       throw new Error('No connected address found');
     }
-    const { token0, token1 } = position;
+    //get positin data
+    const positionData = await executeGraphQuery<GraphPositionResponse>(
+      POSITIONS_QUERY,
+      {
+        positionId,
+        owner: address.toLowerCase(),
+      }
+    );
+    if (!positionData.data?.position) throw new Error('Position not found');
+    const { token0, token1 } = positionData.data?.position;
 
     const token0Instance = new STORYHUNT.Token(
       ADDRESSES.CHAIN_ID,
@@ -505,7 +543,7 @@ export const collectFeeV3 = async (position: PositionData) => {
     ).toString();
 
     const collectOptions = {
-      tokenId: position.id,
+      tokenId: positionId,
       expectedCurrencyOwed0: STORYHUNT.CurrencyAmount.fromRawAmount(
         token0Instance,
         JSBI.BigInt(amount0Raw)
@@ -531,6 +569,6 @@ export const collectFeeV3 = async (position: PositionData) => {
     return hash;
   } catch (error) {
     console.error('Error in removing liquidity:', error);
-    return error;
+    return error as unknown as Error;
   }
-};
+}
