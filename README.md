@@ -123,15 +123,14 @@ async function executeSwap(
 
 # Adding Liquidity
 
-**Function**: `addLiquidityV3(params: {   token1_address:` 0x${string}`,   token2_address:` 0x${string}`,   amount1: bigint,   amount2: bigint,   amount1Min: bigint,   amount2Min: bigint,   tickLower: number,   tickUpper: number,   expire_time: bigint })`
+**Function**: `addLiquidityV3(token0: string, token1: string, fee: 500 | 3000 | 10000, amount0: number, amount1: number, highPrice: number, lowPrice: number)`
 
 Allows adding liquidity to a StoryHunt V3 pool with a specified price range:
 
-- **`token1_address`/`token2_address`**: The token addresses for the two assets you’re adding. Use `WIP` for IP (native) deposits.
-- **`amount1`/`amount2`**: The amounts of tokens to deposit.
-- **`amount1Min`/`amount2Min`**: The minimum amounts to deposit, ensuring slippage tolerance.
-- **`tickLower`/`tickUpper`**: Defines the price range. `1.0001^(tickLower)` and `1.0001^(tickUpper)` determine the minimum and maximum price boundaries.
-- **`expire_time`**: A timestamp after which the liquidity addition is no longer valid.
+- **`token0_address`/`token1_address`**: The token addresses for the two assets you’re adding. Use `WIP` for IP (native) deposits.
+- **`fee`**: The feeTire of the pool.
+- **`amount0`/`amount1`**: The amounts of tokens to deposit.
+- **`highPrice`/`LowPrice`**: Defines the price range. `1.0001^(highPrice)` and `0.9999^(LowPrice)` determine the minimum and maximum price boundaries.
 
 **Example**:
 
@@ -139,33 +138,27 @@ Allows adding liquidity to a StoryHunt V3 pool with a specified price range:
 import { addLiquidityV3, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 async function provideLiquidity() {
-  const txHash = await addLiquidityV3({
-    token1_address: ADDRESSES.TOKENS.WIP.id,
-    token2_address: ADDRESSES.TOKENS.USDC.id,
-    amount1: 10n ** 18n,
-    amount2: 500n * 10n ** 6n,
-    amount1Min: 9n ** 17n,
-    amount2Min: 450n * 10n ** 6n,
-    tickLower: -60000,
-    tickUpper: 60000,
-    expire_time: BigInt(Math.floor(Date.now() / 1000) + 3600), // 1 hour from now
-  });
+  const txHash = await addLiquidityV3(
+    ADDRESSES.TOKENS.WIP.id,
+    ADDRESSES.TOKENS.USDC.id,
+    3000,
+    10000,
+    50000,
+    5.05,
+    4.95
+  );
   console.log('Liquidity added, txHash:', txHash);
 }
 ```
 
 # Removing Liquidity
 
-**Function**: `removeLiquidityV3( params : {token1_address: string, token2_address: string, tokenId: number, liquidity: bigint, amount1Min: bigint, amount2Min: bigint, expire_time: bigint} )`
+**Function**: `removeLiquidityV3(positionId: number, percentageToRemove: number)`
 
 Removes liquidity from a position in a V3 pool.
 
-- `token1_address`/`token2_address`: The tokens of the position. Use WIP if IP is involved.
-- `tokenId`: The ID of the liquidity position (NFT) you want to remove liquidity from.
-- `liquidity`: The amount of liquidity to remove, as a `bigint`.
-- `amount1Min`/`amount2Min`: Minimum token amounts to ensure you get enough tokens back.
-- `expire_time`: A timestamp after which the liquidity removal is invalid.
-
+- `positionId`: The id of the position.
+- `percentageToRemove`: Percentage of pooled token to remove from 1 to 100.
 **Example**:
 
 ```tsx
@@ -173,13 +166,8 @@ import { removeLiquidityV3, ADDRESSES } from '@storyhunt/wrapper-sdk';
 
 async function withdrawLiquidity() {
   const txHash = await removeLiquidityV3(
-    ADDRESSES.TOKENS.WIP.id,
-    ADDRESSES.TOKENS.USDC.id,
-    12345,        // tokenId
-    1000000n,     // liquidity amount
-    900000n,      // minimum amount of token1 returned
-    450000*(10n**6n), // minimum amount of token2 returned
-    BigInt(Math.floor(Date.now() / 1000) + 3600) // expiry
+    1,
+    50
   );
   console.log('Liquidity removed, txHash:', txHash);
 
