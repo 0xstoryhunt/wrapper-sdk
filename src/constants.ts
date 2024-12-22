@@ -129,17 +129,17 @@ const ADDRESSES_CONFIG = {
     },
     //V2
     V2_POOL_FACTORY_CONTRACT_ADDRESS:
-      '0x4773d28a8488eaB17907324455C8F8D9ea48A921',
+      '0x...',
     V2_SWAP_ROUTER_CONTRACT_ADDRESS:
-      '0x144C047f7Be22EAB4BF78c77C1038b86923693CD',
+      '0x...',
     //V3
     V3_POOL_FACTORY_CONTRACT_ADDRESS:
-      '0x2344C1448E528dD0e4094c92966A7f68f45aa4e4',
+      '0x354631ac8fdb2d5d66Ca5809b78BCE9dda1b7973',
     V3_SWAP_ROUTER_CONTRACT_ADDRESS:
-      '0x86f7b21076439629C1344d041f6ea08337b6a214',
+      '0xfcaC68b13Fb4CDFc42E039FEb42bbD539F8a7394',
     V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS:
-      '0x858463Aa07756946c0E0B8e632BE4281f8E53cA4',
-    V3_MULTICALL_ADDRESS: '0x532FB9e7bf3030194Fcd72d42184e51281D59DeB',
+      '0x9aF296D15143B51fBe631cfe6b43969d0f63F1db',
+    V3_MULTICALL_ADDRESS: '0xf565c9Dd6CDDAAa6712d7aA42773bA1AD347B01c',
   },
   // TESTNET: {},
   // MAINNET: {},
@@ -183,7 +183,7 @@ export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(
 const SUBGRAPH_URLS = {
   TESTNET: '',
   ODYSSEY:
-    'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.0/gn',
+    'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.5/gn',
 };
 
 /**

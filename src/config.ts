@@ -15,6 +15,7 @@ let publicClient: PublicClient | undefined;
 let walletClient: WalletClient | undefined;
 let ethersSigner: Signer | undefined;
 let accountAddress: string | undefined;
+let _graph_url: string | undefined;
 
 /**
  * Initialize clients for the SDK.
@@ -27,9 +28,11 @@ let accountAddress: string | undefined;
 export async function initClient(options: {
   privateKey?: string;
   ethersSigner?: Signer;
+  graph_url: string;
 }): Promise<void> {
-  const { privateKey, ethersSigner: signer } = options;
+  const { privateKey, ethersSigner: signer, graph_url } = options;
   const chain = defaultChain;
+  _graph_url = graph_url ?? undefined;
 
   publicClient = createPublicClient({
     chain,
@@ -105,7 +108,7 @@ export function getAccount(): Account {
  * GraphQL client for interacting with the subgraph.
  */
 export const graphClient = createClient({
-  url: SUBGRAPH_URL,
+  url: _graph_url || SUBGRAPH_URL,
   exchanges: [fetchExchange],
 });
 
