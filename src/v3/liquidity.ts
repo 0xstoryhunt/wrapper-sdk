@@ -25,7 +25,7 @@ import {
   getWriteClient,
 } from '../config';
 import { GraphPositionResponse } from './types';
-import { formatUnits, parseUnits, zeroAddress } from 'viem';
+import { parseUnits, zeroAddress } from 'viem';
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi';
 import { ethers } from 'ethers';
 import { POSITIONS_QUERY } from './queries';
@@ -141,47 +141,49 @@ export async function addLiquidityV3(
         ? ADDRESSES.TOKENS.IP.id
         : token1Info.address
     );
-    const formattedBalance0 = JSBI.BigInt(
-      formatUnits(token0Balance.value, token0Balance.decimals)
-    );
-    const formattedBalance1 = JSBI.BigInt(
-      formatUnits(token1Balance.value, token1Balance.decimals)
-    );
+    // Directly convert raw balance values to BigInt without using formatUnits
+    const formattedBalance0 = JSBI.BigInt(token0Balance.value.toString());
+    const formattedBalance1 = JSBI.BigInt(token1Balance.value.toString());
 
     // Get the amounts needed to maintain the same ratio
     const amount0Desired = JSBI.BigInt(
       parseUnits(
-        amount0.toLocaleString('fullwide', { useGrouping: false }),
+        amount0.toFixed(token0Info.decimals),
         token0Info.decimals
       ).toString()
     );
     const amount1Desired = JSBI.BigInt(
       parseUnits(
-        amount1.toLocaleString('fullwide', { useGrouping: false }),
+        amount1.toFixed(token1Info.decimals),
         token1Info.decimals
       ).toString()
     );
 
-    if (formattedBalance0 < amount0Desired) {
+    if (JSBI.lessThan(formattedBalance0, amount0Desired)) {
       throw new Error(`Insufficient balance ${token0Info.symbol}`);
     }
-    if (formattedBalance1 < amount1Desired) {
+    if (JSBI.lessThan(formattedBalance1, amount1Desired)) {
       throw new Error(`Insufficient balance ${token1Info.symbol}`);
     }
 
     // Check allowance
-    const allowance0 = await getAllowence(
+    const allowance0Raw = await getAllowence(
       token0Info.address,
       ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`
     );
-    if (allowance0 < amount0) {
-      throw new Error(`Insufficient allowance for token ${token0Info.symbol}`);
-    }
-    const allowance1 = await getAllowence(
+    const allowance1Raw = await getAllowence(
       token1Info.address,
       ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`
     );
-    if (allowance1 < amount0) {
+    
+    // Convert allowances to BigInt for accurate comparison
+    const allowance0 = JSBI.BigInt(allowance0Raw.toString());
+    const allowance1 = JSBI.BigInt(allowance1Raw.toString());
+
+    if (JSBI.lessThan(allowance0, amount0Desired)) {
+      throw new Error(`Insufficient allowance for token ${token0Info.symbol}`);
+    }
+    if (JSBI.lessThan(allowance1, amount1Desired)) {
       throw new Error(`Insufficient allowance for token ${token1Info.symbol}`);
     }
 
@@ -281,10 +283,15 @@ export async function addLiquidityV3(
       mintLiquidityOptions
     );
 
+    console.log('adding liquidity value : ', value);
+
+    // Ensure 'value' is an integer
+    const integerValue = BigInt(Math.floor(Number(value)));
+
     const transaction = {
       to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
       data: calldata as `0x${string}`,
-      value: BigInt(value),
+      value: integerValue,
       gasLimit: BigInt(4000000),
       chain: defaultChain,
     };
@@ -326,9 +333,11 @@ export async function addPositionLiquidityV3(
         owner: address.toLowerCase(),
       }
     );
-    if (!positionData.data?.position) throw new Error('Position not found');
+    console.log('Position data : ' ,positionData.data?.positions[0]);
+
+    if (!positionData.data?.positions) throw new Error('Position not found');
     const { token0, token1, tickLower, tickUpper, pool } =
-      positionData.data?.position;
+      positionData.data?.positions[0];
 
     // Check balance
     const token0Balance = await getTokenBalance(
@@ -337,47 +346,49 @@ export async function addPositionLiquidityV3(
     const token1Balance = await getTokenBalance(
       token1.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token1.id
     );
-    const formattedBalance0 = JSBI.BigInt(
-      formatUnits(token0Balance.value, token0Balance.decimals)
-    );
-    const formattedBalance1 = JSBI.BigInt(
-      formatUnits(token1Balance.value, token1Balance.decimals)
-    );
+    // Directly convert raw balance values to BigInt without using formatUnits
+    const formattedBalance0 = JSBI.BigInt(token0Balance.value.toString());
+    const formattedBalance1 = JSBI.BigInt(token1Balance.value.toString());
 
     // Get the amounts needed to maintain the same ratio
     const amount0Desired = JSBI.BigInt(
       parseUnits(
-        amount0.toLocaleString('fullwide', { useGrouping: false }),
-        parseInt(token0.decimals)
+        amount0.toFixed(Number(token0.decimals)),
+        Number(token0.decimals)
       ).toString()
     );
     const amount1Desired = JSBI.BigInt(
       parseUnits(
-        amount1.toLocaleString('fullwide', { useGrouping: false }),
-        parseInt(token1.decimals)
+        amount1.toFixed(Number(token1.decimals)),
+        Number(token1.decimals)
       ).toString()
     );
 
-    if (formattedBalance0 < amount0Desired) {
+    if (JSBI.lessThan(formattedBalance0, amount0Desired)) {
       throw new Error(`Insufficient balance ${token0.symbol}`);
     }
-    if (formattedBalance1 < amount1Desired) {
+    if (JSBI.lessThan(formattedBalance1, amount1Desired)) {
       throw new Error(`Insufficient balance ${token1.symbol}`);
     }
 
     // Check allowance
-    const allowance0 = await getAllowence(
+    const allowance0Raw = await getAllowence(
       token0.id,
       ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`
     );
-    if (allowance0 < amount0) {
+    const allowance1Raw = await getAllowence(
+      token1.id,
+      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`
+    );
+    
+    // Convert allowances to BigInt for accurate comparison
+    const allowance0 = JSBI.BigInt(allowance0Raw.toString());
+    const allowance1 = JSBI.BigInt(allowance1Raw.toString());
+
+    if (JSBI.lessThan(allowance0, amount0Desired)) {
       throw new Error(`Insufficient allowance for token ${token0.symbol}`);
     }
-    const allowance1 = await getAllowence(
-      token0.id,
-      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`
-    );
-    if (allowance1 < amount0) {
+    if (JSBI.lessThan(allowance1, amount1Desired)) {
       throw new Error(`Insufficient allowance for token ${token1.symbol}`);
     }
 
@@ -423,10 +434,14 @@ export async function addPositionLiquidityV3(
       addLiquidityOptions
     );
 
+    console.log('adding liquidity to position value : ', value)
+
+    const integerValue = BigInt(Math.floor(Number(value)));
+
     const transaction = {
       to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
       data: calldata as `0x${string}`,
-      value: BigInt(value),
+      value: integerValue,
       gasLimit: BigInt(4000000),
       chain: defaultChain,
     };
@@ -466,10 +481,11 @@ export async function removeLiquidityV3(
         owner: address.toLowerCase(),
       }
     );
-    if (!positionData.data?.position) throw new Error('Position not found');
+    if (!positionData.data?.positions) throw new Error('Position not found');
     const { token0, token1, liquidity, tickLower, tickUpper, pool } =
-      positionData.data?.position;
+      positionData.data?.positions[0];
 
+      console.log(' position to remove ', positionData.data?.positions[0])
     const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,
       token0.id,
@@ -556,8 +572,8 @@ export async function collectFeeV3(
         owner: address.toLowerCase(),
       }
     );
-    if (!positionData.data?.position) throw new Error('Position not found');
-    const { token0, token1 } = positionData.data?.position;
+    if (!positionData.data?.positions) throw new Error('Position not found');
+    const { token0, token1 } = positionData.data?.positions[0];
 
     const token0Instance = new Token(
       ADDRESSES.CHAIN_ID,

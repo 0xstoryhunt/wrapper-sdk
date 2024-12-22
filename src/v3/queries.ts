@@ -126,7 +126,7 @@ query Pool($token0: ID!, $token1: ID!) {
  */
 export const USER_POSITIONS_QUERY = `
   query MyQuery($userId: Bytes!) {
-    positions(where: { owner: $userId }, orderBy: liquidity, orderDirection: desc) {
+    positions(where: { owner: $userId }, orderBy: id, orderDirection: desc) {
       id
       owner
       collectedFeesToken0

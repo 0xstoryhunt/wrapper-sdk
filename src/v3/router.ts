@@ -96,7 +96,7 @@ export async function swapRouterV3(
             parseFloat(pool.totalValueLockedToken0) < 0.01 ||
             parseFloat(pool.totalValueLockedToken1) < 0.01
           ) {
-            console.log('Insufficient liquidity', pool.id);
+            //console.log('Insufficient liquidity', pool.id);
             return;
           }
 

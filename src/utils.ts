@@ -122,6 +122,7 @@ export const v3RoutertokenApproval = async (
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
   const result = await universalWriteContract(writeClient, params);
+  return result;
   // If needed, check result type and normalize:
   console.log('Transaction hash : ', result);
 };
@@ -154,6 +155,7 @@ export const v3PositionManagertokenApproval = async (
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
   const result = await universalWriteContract(writeClient, params);
+  return result;
   // If needed, check result type and normalize:
   console.log('Transaction hash : ', result);
 };
@@ -297,11 +299,7 @@ export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
       address,
       abi: POOL_ABI,
       functionName: 'slot0',
-    }) as Promise<{
-      state: { sqrtPriceX96: number };
-      tick: number;
-      sqrtPriceX96: number;
-    }>,
+    }) as Promise<any>,
     readContract(publicClient, {
       address,
       abi: POOL_ABI,
@@ -312,16 +310,16 @@ export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
     address,
     abi: POOL_ABI,
     functionName: 'ticks',
-    args: [state.tick],
+    args: [state[1]],
   });
 
   return {
     fee,
     state,
     liquidity: JSBI.BigInt(liquidity.toString()),
-    tick: state.tick,
+    tick: state[1],
     ticks,
-    sqrtPriceX96: JSBI.BigInt(state.sqrtPriceX96.toString()),
+    sqrtPriceX96: JSBI.BigInt(state[0].toString()),
   };
 }
 

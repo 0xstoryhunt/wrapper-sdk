@@ -110,6 +110,7 @@ export interface PositionData {
  */
 export interface GraphPositionResponse {
   position: PositionData;
+  positions: PositionData[];
 }
 
 /**
