@@ -29,7 +29,7 @@ import { parseUnits, zeroAddress } from 'viem';
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi';
 import { ethers } from 'ethers';
 import { POSITIONS_QUERY } from './queries';
-import { Token, Price, Percent, CurrencyAmount } from '@storyhunt/core';
+import { Token, Price, Percent, CurrencyAmount } from '@storyhunt/sdk-core';
 
 /**
  * Creates a new StoryHunt V3 pool with the specified parameters.

@@ -28,7 +28,7 @@ let _graph_url: string | undefined;
 export async function initClient(options: {
   privateKey?: string;
   ethersSigner?: Signer;
-  graph_url: string;
+  graph_url?: string;
 }): Promise<void> {
   const { privateKey, ethersSigner: signer, graph_url } = options;
   const chain = defaultChain;

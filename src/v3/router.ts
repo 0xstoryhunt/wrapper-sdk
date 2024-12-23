@@ -6,7 +6,7 @@ import { getTokenInfo } from '../utils';
 import { GraphPoolResponse, TokenInfo } from './types';
 import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
 import { executeGraphQuery } from '../config';
-import { Token, TradeType, CurrencyAmount } from '@storyhunt/core';
+import { Token, TradeType, CurrencyAmount } from '@storyhunt/sdk-core';
 
 /**
  * Executes a swap using the StoryHunt V3 SDK.

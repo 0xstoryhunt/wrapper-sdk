@@ -11,7 +11,7 @@ import { formatUnits } from 'viem';
 import { SWAP_ROUTER_ABI } from './abi';
 import { getAccountAddress, getWriteClient } from '../config';
 import { ethers } from 'ethers';
-import { Percent, Token, TradeType } from '@storyhunt/core';
+import { Percent, Token, TradeType } from '@storyhunt/sdk-core';
 
 /**
  * Executes a swap using StoryHunt V3.

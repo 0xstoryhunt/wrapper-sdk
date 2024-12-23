@@ -6,7 +6,7 @@ import {
   WalletClient,
 } from 'viem';
 import { erc20Abi } from 'viem';
-import { MaxUint256 } from '@storyhunt/core';
+import { MaxUint256 } from '@storyhunt/sdk-core';
 import { ADDRESSES, defaultChain } from './constants';
 import { readContract, writeContract } from 'viem/actions';
 import {

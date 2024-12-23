@@ -19,7 +19,7 @@ import {
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
 
-import { Token } from '@storyhunt/core';
+import { Token } from '@storyhunt/sdk-core';
 import { Trade } from '@storyhunt/v3-sdk';
 import JSBI from 'jsbi';
 import { parseUnits } from 'viem';

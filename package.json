@@ -1,6 +1,6 @@
 {
   "name": "@storyhunt/wrapper-sdk",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
   "license": "MIT",
@@ -27,8 +27,8 @@
   "dependencies": {
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/solidity": "^5.7.0",
-    "@storyhunt/core": "^1.0.1",
-    "@storyhunt/v3-sdk": "^1.0.0",
+    "@storyhunt/sdk-core": "^1.0.1",
+    "@storyhunt/v3-sdk": "^1.0.1",
     "@wagmi/core": "^2.6.5",
     "ethers": "^6.13.4",
     "jsbi": "^3.2.5",

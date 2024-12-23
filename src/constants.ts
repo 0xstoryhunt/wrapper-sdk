@@ -1,5 +1,5 @@
 import { defineChain } from 'viem';
-import { Fraction } from '@storyhunt/core';
+import { Fraction } from '@storyhunt/sdk-core';
 import JSBI from 'jsbi';
 
 /**

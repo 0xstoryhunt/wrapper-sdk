@@ -258,7 +258,7 @@ You can use these addresses directly when calling functions that require token o
 
 ## Types
 
-The SDK leverages types from the StoryHunt [V3 SDK](https://www.npmjs.com/package/@storyhunt/v3-sdk) and [CORE SDK](https://www.npmjs.com/package/@storyhunt/core). Commonly used types include:
+The SDK leverages types from the StoryHunt [V3 SDK](https://www.npmjs.com/package/@storyhunt/v3-sdk) and [CORE SDK](https://www.npmjs.com/package/@storyhunt/sdk-core). Commonly used types include:
 
 - **`Trade<TInput, TOutput, TTradeType>`**: Represents a trade route between two tokens.
   - `TInput` and `TOutput` are token types, typically `STORYHUNT.Token` (aliased from `@StoryHunt/sdk-core`) representing ERC-20 tokens or wrapped native tokens.
