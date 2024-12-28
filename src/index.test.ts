@@ -24,8 +24,8 @@ import { Trade } from '@storyhunt/v3-sdk';
 import JSBI from 'jsbi';
 import { parseUnits } from 'viem';
 
-const privateKey = '0x...' as `0x${string}`;
-const expectedAddress = '0x...' as `0x${string}`;
+const privateKey = process.env.TEST_PRIVATE_KEY as `0x${string}`;
+const expectedAddress = process.env.TEST_PUBLIC_ADDRESS as `0x${string}`;
 
 function sleep(ms:number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
