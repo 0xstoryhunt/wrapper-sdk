@@ -134,12 +134,12 @@ const ADDRESSES_CONFIG = {
       '0x...',
     //V3
     V3_POOL_FACTORY_CONTRACT_ADDRESS:
-      '0x354631ac8fdb2d5d66Ca5809b78BCE9dda1b7973',
+      '0x6A76afC7417fd6A57fEAe35fB53Fd51eDc08C1ba',
     V3_SWAP_ROUTER_CONTRACT_ADDRESS:
-      '0xfcaC68b13Fb4CDFc42E039FEb42bbD539F8a7394',
+      '0xf6b5DaC44dff54069B07dC8919eb35c001d0864c',
     V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS:
-      '0x9aF296D15143B51fBe631cfe6b43969d0f63F1db',
-    V3_MULTICALL_ADDRESS: '0xf565c9Dd6CDDAAa6712d7aA42773bA1AD347B01c',
+      '0xe66015EFdAFc8a116B91e83d02AfB4f737835BA3',
+    V3_MULTICALL_ADDRESS: '0x92D99FFa06edbDDB1B599A92473E4ad19ee485D4',
   },
   // TESTNET: {},
   // MAINNET: {},
@@ -183,7 +183,7 @@ export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(
 const SUBGRAPH_URLS = {
   TESTNET: '',
   ODYSSEY:
-    'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.5/gn',
+    'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.2/gn',
 };
 
 /**
