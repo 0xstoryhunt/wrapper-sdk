@@ -56,6 +56,8 @@ export async function swapRouterV3(
       currencyOut.wrapped.address.toLowerCase(),
       5,
     )
+    console.log({ path })
+
     if (path.length === 0) {
       throw new Error('No path found')
     }

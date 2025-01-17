@@ -22,11 +22,10 @@ async function buildGraphWithHeuristics(
         variables: { tokenId: node?.toLowerCase() },
       })),
     )
-    console.log('Results: ', results)
 
     // Filter results where neighbors include endToken
     const resultsWithEndToken = results.filter(({ result }) =>
-      result.data.token.neighbour.some((neighbour: any) => neighbour.id === endToken),
+      result.data?.token?.neighbour?.some((neighbour: any) => neighbour.id === endToken),
     )
 
     if (resultsWithEndToken.length > 0) {
@@ -54,7 +53,7 @@ async function buildGraphWithHeuristics(
         variables: { tokenId },
         result,
       } of results) {
-        const neighbours = result.data.token.neighbour
+        const neighbours = result.data?.token?.neighbour || []
 
         for (const neighbour of neighbours) {
           const neighbourId = neighbour.id
