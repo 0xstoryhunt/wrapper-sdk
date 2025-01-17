@@ -1,6 +1,6 @@
 {
   "name": "@storyhunt/wrapper-sdk",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
   "license": "MIT",
@@ -20,6 +20,8 @@
     "build": "npm run ts-check && npm run build-lib",
     "build-lib": "tsup --config ./tsup.config.lib.ts",
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest --verbose",
+    "lint": "eslint --ext .ts,.tsx .",
+    "lint:fix": "eslint --ext .ts,.tsx . --fix",
     "ts-check": "tsc --noEmit",
     "size": "size-limit",
     "prepare": "npm run build-lib"

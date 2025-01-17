@@ -48,7 +48,7 @@ query Pools {
    feesUSD
  }
 }
-`;
+`
 
 /**
  * GraphQL query to fetch pools using token IDs.
@@ -77,8 +77,15 @@ query Pools {
  * - feesUSD
  */
 export const POOLWTOKEN_QUERY = `
-query Pool($token0: ID!, $token1: ID!) {
-  pools(where: {token0_: {id_in: [$token0, $token1]} token1_: {id_in: [$token0, $token1]}}) {
+query Pool($condition: [Pool_filter!]!) {
+  pools(
+    orderBy: liquidity
+    orderDirection: desc
+    where: {
+        or: $condition
+    }
+    first: 1000
+  ) {
     id
     totalValueLockedToken0
     totalValueLockedToken1
@@ -86,20 +93,35 @@ query Pool($token0: ID!, $token1: ID!) {
     volumeToken1
     token0Price
     token1Price
-    token0{id symbol decimals name}
-    token1{id symbol decimals name}
+    token0 {
+      id
+      symbol
+      decimals
+      name
+    }
+    token1 {
+      id
+      symbol
+      decimals
+      name
+    }
     feeTier
     liquidity
     sqrtPrice
     createdAtTimestamp
     volumeUSD
     tick
-    ticks(first: 1000) {poolAddress liquidityGross liquidityNet tickIdx }
+    ticks(first: 1000) {
+      poolAddress
+      liquidityGross
+      liquidityNet
+      tickIdx
+    }
     observationIndex
     feesUSD
   }
 }
-`;
+`
 
 /**
  * GraphQL query to fetch user positions based on user ID.
@@ -211,7 +233,7 @@ export const USER_POSITIONS_QUERY = `
       }
     }
   }
-`;
+`
 
 /**
  * GraphQL query to fetch position data based on position ID and owner.
@@ -326,4 +348,31 @@ query MyQuery($positionId: ID!, $owner: Bytes!) {
       }
 }
 }
-`;
+`
+
+/**
+ * GraphQL query to fetch a token and its neighbours.
+ *
+ * This query retrieves a token by its ID and fetches up to 1000 neighbouring tokens.
+ * For each neighbouring token, it retrieves the ID and the total value locked.
+ *
+ * @constant
+ * @type {string}
+ * @param {ID!} tokenId - The unique identifier of the token.
+ * @returns {Object} token - The token object.
+ * @returns {ID} token.id - The unique identifier of the token.
+ * @returns {Array} token.neighbour - The list of neighbouring tokens.
+ * @returns {ID} token.neighbour.id - The unique identifier of the neighbouring token.
+ * @returns {number} token.neighbour.totalValueLocked - The total value locked in the neighbouring token.
+ */
+export const TOKEN_NEIGHBOUR_QUERY = `
+query Token($tokenId: ID!) {
+  token(id: $tokenId) {
+    id
+    neighbour(first: 1000) {
+      id
+      totalValueLocked
+    }
+  }
+}
+`

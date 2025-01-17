@@ -1,17 +1,13 @@
-import { SwapRouter, Trade } from '@storyhunt/v3-sdk';
-import JSBI from 'jsbi';
-import { ADDRESSES, defaultChain } from '../constants';
-import {
-  getTokenBalance,
-  getAllowence,
-  universalWriteContract,
-} from '../utils';
+import { SwapRouter, Trade } from '@storyhunt/v3-sdk'
+import JSBI from 'jsbi'
+import { ADDRESSES } from '../constants'
+import { getTokenBalance, getAllowence, universalSendTransaction } from '../utils'
 
-import { formatUnits } from 'viem';
-import { SWAP_ROUTER_ABI } from './abi';
-import { getAccountAddress, getWriteClient } from '../config';
-import { ethers } from 'ethers';
-import { Percent, Token, TradeType } from '@storyhunt/sdk-core';
+import { encodeFunctionData, formatUnits } from 'viem'
+import { SWAP_ROUTER_ABI } from './abi'
+import { getAccountAddress, getWriteClient } from '../config'
+import { ethers } from 'ethers'
+import { Percent, Token, TradeType } from '@storyhunt/sdk-core'
 
 /**
  * Executes a swap using StoryHunt V3.
@@ -33,73 +29,98 @@ import { Percent, Token, TradeType } from '@storyhunt/sdk-core';
  * ```
  */
 export async function swapV3(
-  trade: Trade<Token, Token, TradeType>
+  trade: Trade<Token, Token, TradeType>,
 ): Promise<string | ethers.TransactionResponse | Error> {
-  const walletClient = getWriteClient();
-  const address = getAccountAddress();
+  const walletClient = getWriteClient()
+  const address = getAccountAddress()
 
   try {
     if (!address) {
-      throw new Error('No connected address found');
+      throw new Error('No connected address found')
     }
 
-    const tokenInAddress = trade.inputAmount.currency.address as `0x${string}`;
+    const tokenInAddress = trade.inputAmount.currency.address as `0x${string}`
     if (!tokenInAddress) {
-      throw new Error('Input token must have an address');
+      throw new Error('Input token must have an address')
     }
 
     // Check balance
-    const tokenBalance = await getTokenBalance(tokenInAddress);
-    const formattedBalance = Number(
-      formatUnits(tokenBalance.value, tokenBalance.decimals)
-    );
-    const inputAmount = BigInt(trade.inputAmount.toFixed(0));
-    const requiredMinimum = BigInt(100); // Arbitrary minimum
+    const tokenBalance = await getTokenBalance(tokenInAddress)
+    const formattedBalance = Number(formatUnits(tokenBalance.value, tokenBalance.decimals))
+    const inputAmount = BigInt(trade.inputAmount.toFixed(0))
+    const requiredMinimum = BigInt(100) // Arbitrary minimum
 
     if (
-      formattedBalance <
-        Number(formatUnits(requiredMinimum, tokenBalance.decimals)) ||
+      formattedBalance < Number(formatUnits(requiredMinimum, tokenBalance.decimals)) ||
       inputAmount > tokenBalance.value
     ) {
-      throw new Error('Insufficient balance');
+      throw new Error('Insufficient balance')
     }
 
     // Check allowance
-    const allowance = await getAllowence(
-      tokenInAddress,
-      ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`
-    );
+    const allowance = await getAllowence(tokenInAddress, ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`)
 
     if (allowance < inputAmount) {
-      throw new Error('Insufficient allowance');
+      throw new Error('Insufficient allowance')
     }
 
-    //wrap if ip
-    // if(trade.inputAmount.currency.address === ADDRESSES.TOKENS.IP.id){
-    //   await wrap(inputAmount);
-    // }
+    //calldata
+    const calls = []
+    let value = BigInt(0)
+    const slippageTolerance = new Percent(JSBI.BigInt(50), JSBI.BigInt(10000)) // 0.5%
 
-    const { calldata, value } = SwapRouter.swapCallParameters(trade, {
-      slippageTolerance: new Percent(JSBI.BigInt(50), JSBI.BigInt(10000)), // 0.5%
+    const { calldata, value: swapValue } = SwapRouter.swapCallParameters(trade, {
+      slippageTolerance, // 0.5%
       deadline: JSBI.BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // 20 minutes from now
       recipient: address,
-    });
+    })
 
-    // Execute the swap
-    const hash = await universalWriteContract(walletClient, {
-      address: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+    calls.push(calldata)
+    value += BigInt(swapValue)
+
+    /** UNWARP IF OUTPUT is IP */
+    if (trade?.outputAmount.currency.isNative) {
+      calls.push(
+        encodeFunctionData({
+          abi: SWAP_ROUTER_ABI,
+          functionName: 'unwrapWIP9',
+          args: [BigInt(+trade.minimumAmountOut(slippageTolerance).toExact() * 10 ** 18), address],
+        }),
+      )
+    }
+
+    /** REFUND IP WHEN INPUT IS IP / CALLDATA */
+    if (trade?.inputAmount.currency.isNative) {
+      calls.push(
+        encodeFunctionData({
+          abi: SWAP_ROUTER_ABI,
+          functionName: 'refundIP',
+          args: [],
+        }),
+      )
+    }
+
+    const finalEncoding = encodeFunctionData({
       abi: SWAP_ROUTER_ABI,
       functionName: 'multicall',
-      args: [[calldata]],
-      value: BigInt(value),
-      chain: defaultChain,
-    });
+      args: [calls],
+    })
 
-    return hash;
+    const transaction = {
+      chainId: ADDRESSES.CHAIN_ID,
+      from: address,
+      to: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+      data: finalEncoding,
+      value: value,
+    }
+    // Execute the swap
+    const hash = await universalSendTransaction(walletClient, transaction)
+
+    return hash
 
     //unwrap if wip
   } catch (error) {
-    console.error('Error in swap:', error);
-    return error as unknown as Error;
+    console.error('Error in swap:', error)
+    return error as unknown as Error
   }
 }

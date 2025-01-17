@@ -1,12 +1,13 @@
-import { Pool, Tick, TickListDataProvider, Trade } from '@storyhunt/v3-sdk';
-import JSBI from 'jsbi';
+import { Pool, Tick, TickListDataProvider, Trade } from '@storyhunt/v3-sdk'
+import JSBI from 'jsbi'
 
-import { ADDRESSES, defaultChainId } from '../constants';
-import { getTokenInfo } from '../utils';
-import { GraphPoolResponse, TokenInfo } from './types';
-import { POOL_QUERY, POOLWTOKEN_QUERY } from './queries';
-import { executeGraphQuery } from '../config';
-import { Token, TradeType, CurrencyAmount } from '@storyhunt/sdk-core';
+import { ADDRESSES, defaultChainId } from '../constants'
+import { getTokenInfo } from '../utils'
+import { GraphPoolResponse } from './types'
+import { POOLWTOKEN_QUERY } from './queries'
+import { executeGraphQuery } from '../config'
+import { Token, TradeType, CurrencyAmount, IP } from '@storyhunt/sdk-core'
+import { findOptimalPathAStar } from './path'
 
 /**
  * Executes a swap using the StoryHunt V3 SDK.
@@ -23,163 +24,119 @@ export async function swapRouterV3(
   tokenIn: string,
   tokenOut: string,
   amount: bigint,
-  exactIn: boolean
-): Promise<Trade<Token, Token, TradeType>[] | Error> {
+  exactIn: boolean,
+): Promise<Trade<Token | IP, Token | IP, TradeType>[] | Error> {
   try {
-    let tokenInInfo: TokenInfo | undefined;
-    let tokenOutInfo: TokenInfo | undefined;
-
-    // If tokenIn is not the native IP token, fetch metadata
-    if (tokenIn !== ADDRESSES.TOKENS.IP.id) {
-      tokenInInfo = await getTokenInfo(tokenIn as `0x${string}`);
-    }
-
-    // If tokenOut is not the native IP token, fetch metadata
-    if (tokenOut !== ADDRESSES.TOKENS.IP.id) {
-      tokenOutInfo = await getTokenInfo(tokenOut as `0x${string}`);
-    }
+    const tokenInInfo = await getTokenInfo(tokenIn as `0x${string}`)
+    const tokenOutInfo = await getTokenInfo(tokenOut as `0x${string}`)
 
     const currencyIn =
       tokenIn === ADDRESSES.TOKENS.IP.id
-        ? new Token(
-            defaultChainId,
-            ADDRESSES.TOKENS.WIP.id as `0x${string}`,
-            ADDRESSES.TOKENS.WIP.decimals,
-            ADDRESSES.TOKENS.WIP.symbol,
-            ADDRESSES.TOKENS.WIP.name
-          )
+        ? IP.onChain(ADDRESSES.CHAIN_ID)
         : new Token(
             defaultChainId,
             tokenIn as `0x${string}`,
             tokenInInfo!.decimals,
             tokenInInfo!.symbol,
-            tokenInInfo!.name
-          );
+            tokenInInfo!.name,
+          )
 
     const currencyOut =
       tokenOut === ADDRESSES.TOKENS.IP.id
-        ? new Token(
-            defaultChainId,
-            ADDRESSES.TOKENS.WIP.id as `0x${string}`,
-            ADDRESSES.TOKENS.WIP.decimals,
-            ADDRESSES.TOKENS.WIP.symbol,
-            ADDRESSES.TOKENS.WIP.name
-          )
+        ? IP.onChain(ADDRESSES.CHAIN_ID)
         : new Token(
             defaultChainId,
             tokenOut as `0x${string}`,
             tokenOutInfo!.decimals,
             tokenOutInfo!.symbol,
-            tokenOutInfo!.name
-          );
+            tokenOutInfo!.name,
+          )
+    const { path } = await findOptimalPathAStar(
+      currencyIn.wrapped.address.toLowerCase(),
+      currencyOut.wrapped.address.toLowerCase(),
+      5,
+    )
+    if (path.length === 0) {
+      throw new Error('No path found')
+    }
+    const poolsResults = await executeGraphQuery<GraphPoolResponse>(POOLWTOKEN_QUERY, {
+      condition: path.reduce((acc: any[], _, i, arr) => {
+        if (i + 1 < arr.length) {
+          acc.push({ token0_: { id: arr[i] }, token1_: { id: arr[i + 1] } })
+          acc.push({ token0_: { id: arr[i + 1] }, token1_: { id: arr[i] } })
+        }
+        return acc
+      }, []),
+    })
+    const allPools: Pool[] = []
+    poolsResults.data?.pools?.forEach(async (pool: any) => {
+      console.log('Pool token: ', pool.token0.symbol, pool.token1.symbol)
 
-    const topPoolResult =
-      await executeGraphQuery<GraphPoolResponse>(POOL_QUERY);
-
-    const tokenPoolResult = await executeGraphQuery<GraphPoolResponse>(
-      POOLWTOKEN_QUERY,
-      {
-        token0: currencyIn.address.toLowerCase(),
-        token1: currencyOut.address.toLowerCase(),
-      }
-    );
-
-    const allPoolsData = [
-      ...(topPoolResult.data?.pools || []),
-      ...(tokenPoolResult.data?.pools || []),
-    ];
-
-    const allPools = (
-      await Promise.all(
-        allPoolsData.map(async (pool): Promise<Pool | undefined> => {
-          if (
-            parseFloat(pool.totalValueLockedToken0) < 0.01 ||
-            parseFloat(pool.totalValueLockedToken1) < 0.01
-          ) {
-            //console.log('Insufficient liquidity', pool.id);
-            return;
-          }
-
-          if (![500, 3000, 10000].includes(parseInt(pool.feeTier))) {
-            console.log('Inconsistent fee tier', pool.id);
-            return;
-          }
-
-          const tokenA = new Token(
-            defaultChainId,
-            pool.token0.id as `0x${string}`,
-            Number(pool.token0.decimals),
-            pool.token0.symbol,
-            pool.token0.name
-          );
-
-          const tokenB = new Token(
-            defaultChainId,
-            pool.token1.id as `0x${string}`,
-            Number(pool.token1.decimals),
-            pool.token1.symbol,
-            pool.token1.name
-          );
-
-          const ticks: Tick[] = pool.ticks.map(tick => ({
-            index: parseInt(tick.tickIdx),
-            liquidityGross: JSBI.BigInt(tick.liquidityGross),
-            liquidityNet: JSBI.BigInt(tick.liquidityNet),
-          }));
-
-          if (ticks.length === 0) {
-            console.log('No ticks found for pool', pool.id);
-            return;
-          }
-
-          ticks.sort((a, b) => a.index - b.index);
-
-          const tickSpacing =
-            +pool.feeTier === 3000 ? 60 : +pool.feeTier === 500 ? 10 : 200;
-
-          const tickDataProvider = new TickListDataProvider(ticks, tickSpacing);
-
-          const poolObj = new Pool(
-            tokenA,
-            tokenB,
-            parseInt(pool.feeTier),
-            JSBI.BigInt(pool.sqrtPrice),
-            JSBI.BigInt(pool.liquidity),
-            parseInt(pool.tick),
-            tickDataProvider
-          );
-          return poolObj;
-        })
+      const tokenA = new Token(
+        defaultChainId,
+        pool.token0.id,
+        +pool.token0.decimals,
+        pool.token0.symbol,
+        pool.token0.name,
       )
-    ).filter((p): p is Pool => p !== undefined);
+      const tokenB = new Token(
+        defaultChainId,
+        pool.token1.id,
+        +pool.token1.decimals,
+        pool.token1.symbol,
+        pool.token1.name,
+      )
 
-    console.log('All pools:', allPools.length);
+      if (!pool.ticks) return
+      const ticks: Tick[] = pool.ticks.map((tick: any) => ({
+        index: parseInt(tick.tickIdx),
+        liquidityGross: JSBI.BigInt(tick.liquidityGross),
+        liquidityNet: JSBI.BigInt(tick.liquidityNet),
+      }))
 
-    if (exactIn) {
-      return await Trade.bestTradeExactIn(
-        allPools,
-        CurrencyAmount.fromRawAmount(
-          currencyIn,
-          JSBI.BigInt(amount.toString())
-        ),
-        currencyOut,
-        { maxHops: 3, maxNumResults: 1 }
-      );
-    } else {
-      return (
-        (await Trade.bestTradeExactOut(
+      ticks.sort((a, b) => a.index - b.index)
+
+      const tickSpacing = +pool.feeTier === 3000 ? 60 : +pool.feeTier === 500 ? 10 : 200
+      const tickDataProvider = new TickListDataProvider(ticks, tickSpacing)
+
+      const poolObj = new Pool(
+        tokenA,
+        tokenB,
+        parseInt(pool.feeTier),
+        JSBI.BigInt(pool.sqrtPrice),
+        JSBI.BigInt(pool.liquidity),
+        parseInt(pool.tick),
+        tickDataProvider,
+      )
+
+      allPools.push(poolObj)
+    })
+
+    if (allPools.length === 0) {
+      throw new Error('No pool found')
+    }
+    console.log('All pools:', allPools.length)
+
+    const bestTrade = exactIn
+      ? await Trade.bestTradeExactIn(
+          allPools,
+          CurrencyAmount.fromRawAmount(currencyIn, JSBI.BigInt(amount.toString())),
+          currencyOut,
+          { maxHops: 3, maxNumResults: 1 },
+        )
+      : await Trade.bestTradeExactOut(
           allPools,
           currencyIn,
-          CurrencyAmount.fromRawAmount(
-            currencyOut,
-            JSBI.BigInt(amount.toString())
-          ),
-          { maxHops: 3, maxNumResults: 1 }
-        )) || []
-      );
+          CurrencyAmount.fromRawAmount(currencyOut, JSBI.BigInt(amount.toString())),
+          { maxHops: 3, maxNumResults: 1 },
+        )
+
+    if (bestTrade.length === 0) {
+      throw new Error('No trade found')
     }
+    return bestTrade
   } catch (error: any) {
-    console.error('Error in swap:', error);
-    return error;
+    console.error('Error in swap:', error)
+    return error
   }
 }

@@ -1,21 +1,14 @@
-import {
-  createPublicClient,
-  createWalletClient,
-  http,
-  WalletClient,
-  PublicClient,
-  Address,
-} from 'viem';
-import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts';
-import { Signer } from 'ethers';
-import { defaultChain, SUBGRAPH_URL } from './constants';
-import { createClient, fetchExchange } from 'urql';
+import { createPublicClient, createWalletClient, http, WalletClient, PublicClient, Address } from 'viem'
+import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
+import { Signer } from 'ethers'
+import { defaultChain, SUBGRAPH_URL } from './constants'
+import { createClient, fetchExchange } from 'urql'
 
-let publicClient: PublicClient | undefined;
-let walletClient: WalletClient | undefined;
-let ethersSigner: Signer | undefined;
-let accountAddress: string | undefined;
-let _graph_url: string | undefined;
+let publicClient: PublicClient | undefined
+let walletClient: WalletClient | undefined
+let ethersSigner: Signer | undefined
+let accountAddress: string | undefined
+let _graph_url: string | undefined
 
 /**
  * Initialize clients for the SDK.
@@ -26,34 +19,34 @@ let _graph_url: string | undefined;
  * @returns A promise that resolves when the clients are initialized.
  */
 export async function initClient(options: {
-  privateKey?: string;
-  ethersSigner?: Signer;
-  graph_url?: string;
+  privateKey?: string
+  ethersSigner?: Signer
+  graph_url?: string
 }): Promise<void> {
-  const { privateKey, ethersSigner: signer, graph_url } = options;
-  const chain = defaultChain;
-  _graph_url = graph_url ?? undefined;
+  const { privateKey, ethersSigner: signer, graph_url } = options
+  const chain = defaultChain
+  _graph_url = graph_url ?? undefined
 
   publicClient = createPublicClient({
     chain,
     transport: http(chain.rpcUrls.default.http[0]),
-  });
+  })
 
   if (privateKey) {
-    const account: Account = privateKeyToAccount(privateKey as `0x${string}`);
+    const account: Account = privateKeyToAccount(privateKey as `0x${string}`)
     walletClient = createWalletClient({
       chain,
       transport: http(chain.rpcUrls.default.http[0]),
       account,
-    });
-    accountAddress = account.address.toLowerCase();
+    })
+    accountAddress = account.address.toLowerCase()
   } else if (signer) {
-    ethersSigner = signer;
-    const address = await signer.getAddress();
-    accountAddress = address.toLowerCase();
+    ethersSigner = signer
+    const address = await signer.getAddress()
+    accountAddress = address.toLowerCase()
   } else {
     // No privateKey or ethersSigner means read-only
-    accountAddress = undefined;
+    accountAddress = undefined
   }
 }
 
@@ -65,9 +58,9 @@ export async function initClient(options: {
  */
 export function getPublicClient(): PublicClient {
   if (!publicClient) {
-    throw new Error('Public client not initialized. Call initClients first.');
+    throw new Error('Public client not initialized. Call initClients first.')
   }
-  return publicClient;
+  return publicClient
 }
 
 /**
@@ -79,11 +72,9 @@ export function getPublicClient(): PublicClient {
  * @throws If no write client is available.
  */
 export function getWriteClient(): WalletClient | Signer {
-  if (walletClient) return walletClient;
-  if (ethersSigner) return ethersSigner;
-  throw new Error(
-    'No write client available. Provide privateKey or ethersSigner in initClients.'
-  );
+  if (walletClient) return walletClient
+  if (ethersSigner) return ethersSigner
+  throw new Error('No write client available. Provide privateKey or ethersSigner in initClients.')
 }
 
 /**
@@ -92,7 +83,7 @@ export function getWriteClient(): WalletClient | Signer {
  * @returns The account address or undefined.
  */
 export function getAccountAddress(): string | undefined {
-  return accountAddress;
+  return accountAddress
 }
 
 /**
@@ -101,7 +92,7 @@ export function getAccountAddress(): string | undefined {
  * @returns The account address as an Account type.
  */
 export function getAccount(): Account {
-  return toAccount(accountAddress as Address);
+  return toAccount(accountAddress as Address)
 }
 
 /**
@@ -110,7 +101,7 @@ export function getAccount(): Account {
 export const graphClient = createClient({
   url: _graph_url || SUBGRAPH_URL,
   exchanges: [fetchExchange],
-});
+})
 
 /**
  * Execute a GraphQL query using the graph client.
@@ -119,11 +110,37 @@ export const graphClient = createClient({
  * @param variables - Optional variables for the query.
  * @returns A promise that resolves with the query result.
  */
-export async function executeGraphQuery<T>(
-  query: unknown,
-  variables: Record<string, any> = {}
-) {
-  return await graphClient
-    .query<T>(query, variables, { requestPolicy: 'network-only' })
-    .toPromise();
+export async function executeGraphQuery<T>(query: unknown, variables: Record<string, any> = {}) {
+  return await graphClient.query<T>(query, variables, { requestPolicy: 'network-only' }).toPromise()
+}
+
+export async function fetchInBatches(
+  queries: {
+    query: any
+    variables: { [key: string]: any }
+  }[], // List of query parameters
+  batchSize: number = 50, // Number of queries to fetch in each batch
+  delayMs: number = 10000, // Delay between batches
+): Promise<{ query: any; variables: any; result: any }[]> {
+  const results: { query: any; variables: any; result: any }[] = []
+
+  for (let i = 0; i < Math.ceil(queries.length / batchSize); i += batchSize) {
+    const batch = queries.slice(i, i + batchSize)
+
+    // Fetch all queries in the current batch
+    const batchResults = await Promise.all(
+      batch.map(({ query, variables }) =>
+        executeGraphQuery(query, variables).then((result) => ({ query, variables, result })),
+      ),
+    )
+
+    results.push(...batchResults)
+
+    // Delay before the next batch, if applicable
+    if (i + batchSize < queries.length) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs))
+    }
+  }
+
+  return results
 }

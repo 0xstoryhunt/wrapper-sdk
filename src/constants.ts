@@ -1,6 +1,6 @@
-import { defineChain } from 'viem';
-import { Fraction } from '@storyhunt/sdk-core';
-import JSBI from 'jsbi';
+import { defineChain } from 'viem'
+import { Fraction } from '@storyhunt/sdk-core'
+import JSBI from 'jsbi'
 
 /**
  * Defines the available blockchain networks and their configurations.
@@ -51,7 +51,7 @@ const chains = {
     },
     testnet: true,
   }),
-};
+}
 
 /**
  * The default blockchain network configuration.
@@ -59,7 +59,7 @@ const chains = {
  * @constant
  * @type {Object}
  */
-export const defaultChain = chains['ODYSSEY'];
+export const defaultChain = chains['ODYSSEY']
 
 /**
  * The ID of the default blockchain network.
@@ -67,7 +67,7 @@ export const defaultChain = chains['ODYSSEY'];
  * @constant
  * @type {number}
  */
-export const defaultChainId = defaultChain.id;
+export const defaultChainId = defaultChain.id
 
 /**
  * Configuration for Story network addresses.
@@ -128,22 +128,16 @@ const ADDRESSES_CONFIG = {
       },
     },
     //V2
-    V2_POOL_FACTORY_CONTRACT_ADDRESS:
-      '0x...',
-    V2_SWAP_ROUTER_CONTRACT_ADDRESS:
-      '0x...',
+    V2_POOL_FACTORY_CONTRACT_ADDRESS: '0x...',
+    V2_SWAP_ROUTER_CONTRACT_ADDRESS: '0x...',
     //V3
-    V3_POOL_FACTORY_CONTRACT_ADDRESS:
-      '0x6A76afC7417fd6A57fEAe35fB53Fd51eDc08C1ba',
-    V3_SWAP_ROUTER_CONTRACT_ADDRESS:
-      '0xf6b5DaC44dff54069B07dC8919eb35c001d0864c',
-    V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS:
-      '0xe66015EFdAFc8a116B91e83d02AfB4f737835BA3',
-    V3_MULTICALL_ADDRESS: '0x92D99FFa06edbDDB1B599A92473E4ad19ee485D4',
+    V3_POOL_FACTORY_CONTRACT_ADDRESS: '0x6A76afC7417fd6A57fEAe35fB53Fd51eDc08C1ba',
+    V3_SWAP_ROUTER_CONTRACT_ADDRESS: '0xf6b5DaC44dff54069B07dC8919eb35c001d0864c',
+    V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS: '0xe66015EFdAFc8a116B91e83d02AfB4f737835BA3',
   },
   // TESTNET: {},
   // MAINNET: {},
-};
+}
 
 /**
  * The addresses configuration for the default network.
@@ -151,7 +145,7 @@ const ADDRESSES_CONFIG = {
  * @constant
  * @type {Object}
  */
-export const ADDRESSES = ADDRESSES_CONFIG['ODYSSEY'];
+export const ADDRESSES = ADDRESSES_CONFIG['ODYSSEY']
 
 /**
  * Allowed price impact for warning states.
@@ -159,18 +153,9 @@ export const ADDRESSES = ADDRESSES_CONFIG['ODYSSEY'];
  * @constant
  * @type {Fraction}
  */
-export const ALLOWED_PRICE_IMPACT_LOW = new Fraction(
-  JSBI.BigInt(100),
-  JSBI.BigInt(10000)
-);
-export const ALLOWED_PRICE_IMPACT_MEDIUM = new Fraction(
-  JSBI.BigInt(300),
-  JSBI.BigInt(10000)
-);
-export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(
-  JSBI.BigInt(500),
-  JSBI.BigInt(10000)
-);
+export const ALLOWED_PRICE_IMPACT_LOW = new Fraction(JSBI.BigInt(100), JSBI.BigInt(10000))
+export const ALLOWED_PRICE_IMPACT_MEDIUM = new Fraction(JSBI.BigInt(300), JSBI.BigInt(10000))
+export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(JSBI.BigInt(500), JSBI.BigInt(10000))
 
 /**
  * Subgraph URLs for different networks.
@@ -183,8 +168,8 @@ export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(
 const SUBGRAPH_URLS = {
   TESTNET: '',
   ODYSSEY:
-    'https://api.goldsky.com/api/public/project_cm3zj9u61wxu901wog58adpjp/subgraphs/storyhunt-odyssey-testnet/1.0.2/gn',
-};
+    'https://api.goldsky.com/api/public/project_cm5h7s6wzpi4a01uz3ffh5rar/subgraphs/storyhunt-odyssey-testnet/1.0.2-alpha/gn',
+}
 
 /**
  * The subgraph URL for the default network.
@@ -192,4 +177,4 @@ const SUBGRAPH_URLS = {
  * @constant
  * @type {string}
  */
-export const SUBGRAPH_URL = SUBGRAPH_URLS['ODYSSEY'];
+export const SUBGRAPH_URL = SUBGRAPH_URLS['ODYSSEY']

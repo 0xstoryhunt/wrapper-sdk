@@ -1,26 +1,14 @@
-import {
-  Account,
-  Address,
-  Chain,
-  encodeFunctionData,
-  WalletClient,
-} from 'viem';
-import { erc20Abi } from 'viem';
-import { MaxUint256 } from '@storyhunt/sdk-core';
-import { ADDRESSES, defaultChain } from './constants';
-import { readContract, writeContract } from 'viem/actions';
-import {
-  getPublicClient,
-  getWriteClient,
-  getAccountAddress,
-  getAccount,
-  executeGraphQuery,
-} from './config';
-import { GasParams, GraphPoolResponse, PoolInfo, TokenInfo } from './v3/types';
-import { ethers } from 'ethers';
-import { POOL_ABI, POOL_FACTORY_ABI, WIP_ABI } from './v3/abi';
-import JSBI from 'jsbi';
-import { USER_POSITIONS_QUERY } from './v3/queries';
+import { Account, Address, Chain, encodeFunctionData, WalletClient } from 'viem'
+import { erc20Abi } from 'viem'
+import { IP, MaxUint256, Token } from '@storyhunt/sdk-core'
+import { ADDRESSES, defaultChain } from './constants'
+import { readContract, writeContract } from 'viem/actions'
+import { getPublicClient, getWriteClient, getAccountAddress, getAccount, executeGraphQuery } from './config'
+import { GasParams, GraphPoolResponse, PoolInfo, TokenInfo } from './v3/types'
+import { ethers } from 'ethers'
+import { POOL_ABI, POOL_FACTORY_ABI, WIP_ABI } from './v3/abi'
+import JSBI from 'jsbi'
+import { USER_POSITIONS_QUERY } from './v3/queries'
 
 /**
  * Estimates gas cost for a given contract call, applying an optional percentage.
@@ -31,12 +19,12 @@ import { USER_POSITIONS_QUERY } from './v3/queries';
  */
 export const estimateGasCost = async (
   gasParams: GasParams,
-  gasPercentage = BigInt(100)
+  gasPercentage = BigInt(100),
 ): Promise<bigint | undefined> => {
   try {
-    const publicClient = getPublicClient();
-    const data = encodeFunctionData(gasParams);
-    const address = getAccountAddress();
+    const publicClient = getPublicClient()
+    const data = encodeFunctionData(gasParams)
+    const address = getAccountAddress()
     const estimatedGas = await publicClient?.request({
       method: 'eth_estimateGas',
       params: [
@@ -47,18 +35,16 @@ export const estimateGasCost = async (
           value: `0x${gasParams.value.toString(16)}`,
         },
       ],
-    });
+    })
 
-    const adjustedGas = estimatedGas
-      ? (BigInt(estimatedGas) * gasPercentage) / BigInt(100)
-      : undefined;
+    const adjustedGas = estimatedGas ? (BigInt(estimatedGas) * gasPercentage) / BigInt(100) : undefined
 
-    return adjustedGas;
+    return adjustedGas
   } catch (error) {
-    console.error('Error estimating gas:', error);
-    return undefined;
+    console.error('Error estimating gas:', error)
+    return undefined
   }
-};
+}
 
 /**
  * Approves a spender to use a certain amount of tokens on behalf of the user's account.
@@ -68,15 +54,11 @@ export const estimateGasCost = async (
  * @param spender - The address of the spender to approve.
  * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
-export const tokenApproval = async (
-  token: string,
-  spender: string,
-  amount: bigint = BigInt(MaxUint256.toString())
-) => {
-  const writeClient = getWriteClient();
-  const account = getAccount();
+export const tokenApproval = async (token: string, spender: string, amount: bigint = BigInt(MaxUint256.toString())) => {
+  const writeClient = getWriteClient()
+  const account = getAccount()
   if (!account) {
-    throw new Error('No connected account found.');
+    throw new Error('No connected account found.')
   }
 
   const params = {
@@ -86,13 +68,13 @@ export const tokenApproval = async (
     args: [spender as `0x${string}`, amount],
     chain: defaultChain,
     value: BigInt(0),
-  };
+  }
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
-  const result = await universalWriteContract(writeClient, params);
+  const result = await universalWriteContract(writeClient, params)
   // If needed, check result type and normalize:
-  console.log('Transaction hash : ', result);
-};
+  console.log('Transaction hash : ', result)
+}
 
 /**
  * Approves V3_SWAP_ROUTER to use a certain amount of tokens on behalf of the user's account.
@@ -101,14 +83,11 @@ export const tokenApproval = async (
  * @param token - The address of the token to approve.
  * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
-export const v3RoutertokenApproval = async (
-  token: string,
-  amount: bigint = BigInt(MaxUint256.toString())
-) => {
-  const writeClient = getWriteClient();
-  const account = getAccount();
+export const v3RoutertokenApproval = async (token: string, amount: bigint = BigInt(MaxUint256.toString())) => {
+  const writeClient = getWriteClient()
+  const account = getAccount()
   if (!account) {
-    throw new Error('No connected account found.');
+    throw new Error('No connected account found.')
   }
 
   const params = {
@@ -118,14 +97,14 @@ export const v3RoutertokenApproval = async (
     args: [ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS, amount],
     chain: defaultChain,
     value: BigInt(0),
-  };
+  }
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
-  const result = await universalWriteContract(writeClient, params);
-  return result;
+  const result = await universalWriteContract(writeClient, params)
+  return result
   // If needed, check result type and normalize:
-  console.log('Transaction hash : ', result);
-};
+  console.log('Transaction hash : ', result)
+}
 
 /**
  * Approves V3_NONFUNGIBLE_POSITION_MANAGER to use a certain amount of tokens on behalf of the user's account.
@@ -134,14 +113,11 @@ export const v3RoutertokenApproval = async (
  * @param token - The address of the token to approve.
  * @param amount - The amount of tokens to approve (default is MaxUint256).
  */
-export const v3PositionManagertokenApproval = async (
-  token: string,
-  amount: bigint = BigInt(MaxUint256.toString())
-) => {
-  const writeClient = getWriteClient();
-  const account = getAccount();
+export const v3PositionManagertokenApproval = async (token: string, amount: bigint = BigInt(MaxUint256.toString())) => {
+  const writeClient = getWriteClient()
+  const account = getAccount()
   if (!account) {
-    throw new Error('No connected account found.');
+    throw new Error('No connected account found.')
   }
 
   const params = {
@@ -151,14 +127,14 @@ export const v3PositionManagertokenApproval = async (
     args: [ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS, amount],
     chain: defaultChain,
     value: BigInt(0),
-  };
+  }
 
   // universalWriteContract returns a hash (if viem) or ethers TransactionResponse
-  const result = await universalWriteContract(writeClient, params);
-  return result;
+  const result = await universalWriteContract(writeClient, params)
+  return result
   // If needed, check result type and normalize:
-  console.log('Transaction hash : ', result);
-};
+  console.log('Transaction hash : ', result)
+}
 
 /**
  * Retrieves the allowance of a token for a given spender.
@@ -168,10 +144,10 @@ export const v3PositionManagertokenApproval = async (
  * @returns The allowance of the token for the given spender.
  */
 export const getAllowence = async (token: string, spender: string) => {
-  const publicClient = getPublicClient();
-  const account = getAccountAddress();
+  const publicClient = getPublicClient()
+  const account = getAccountAddress()
   if (!account) {
-    throw new Error('No connected address found');
+    throw new Error('No connected address found')
   }
 
   return (await readContract(publicClient, {
@@ -179,8 +155,8 @@ export const getAllowence = async (token: string, spender: string) => {
     abi: erc20Abi,
     functionName: 'allowance',
     args: [account as `0x${string}`, spender as `0x${string}`],
-  })) as bigint;
-};
+  })) as bigint
+}
 
 /**
  * Retrieves the pool of a token pair.
@@ -190,15 +166,11 @@ export const getAllowence = async (token: string, spender: string) => {
  * @param fee - The fee tier of the pool (500, 3000, or 10000).
  * @returns The address of the pool for the given token pair and fee tier.
  */
-export const getPool = async (
-  token0: `0x${string}`,
-  token1: `0x${string}`,
-  fee: 500 | 3000 | 10000
-) => {
-  const publicClient = getPublicClient();
-  const account = getAccountAddress();
+export const getPool = async (token0: `0x${string}`, token1: `0x${string}`, fee: 500 | 3000 | 10000) => {
+  const publicClient = getPublicClient()
+  const account = getAccountAddress()
   if (!account) {
-    throw new Error('No connected address found');
+    throw new Error('No connected address found')
   }
 
   return (await readContract(publicClient, {
@@ -206,8 +178,8 @@ export const getPool = async (
     abi: POOL_FACTORY_ABI,
     functionName: 'getPool',
     args: [token0, token1, fee],
-  })) as `0x${string}`;
-};
+  })) as `0x${string}`
+}
 
 /**
  * Retrieves the balance of the user's account. If the token is the native IP token,
@@ -217,21 +189,21 @@ export const getPool = async (
  * @returns An object containing the balance value and decimals.
  */
 export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
-  const publicClient = getPublicClient();
-  const address = getAccountAddress();
+  const publicClient = getPublicClient()
+  const address = getAccountAddress()
   if (!address) {
-    throw new Error('No connected address found');
+    throw new Error('No connected address found')
   }
 
   if (token === ADDRESSES.TOKENS.IP.id) {
     // Native token balance
     const balance = await publicClient.getBalance({
       address: address as Address,
-    });
+    })
     return {
       value: balance,
       decimals: 18, // Native typically 18 decimals
-    };
+    }
   } else {
     // ERC-20 token balance
     const [decimals, balance] = await Promise.all([
@@ -246,11 +218,11 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
         functionName: 'balanceOf',
         args: [address as `0x${string}`],
       }) as Promise<bigint>,
-    ]);
+    ])
 
-    return { value: balance, decimals };
+    return { value: balance, decimals }
   }
-};
+}
 
 /**
  * Retrieves token information such as decimals, symbol, and name.
@@ -259,7 +231,15 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
  * @returns An object containing the token information.
  */
 export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
-  const publicClient = getPublicClient();
+  if (address === ADDRESSES.TOKENS.IP.id)
+    return {
+      decimals: 18,
+      symbol: 'IP',
+      name: 'IP',
+      address: ADDRESSES.TOKENS.IP.id,
+    }
+
+  const publicClient = getPublicClient()
   const [decimals, symbol, name] = await Promise.all([
     readContract(publicClient, {
       address,
@@ -276,9 +256,9 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
       abi: erc20Abi,
       functionName: 'name',
     }) as Promise<string>,
-  ]);
+  ])
 
-  return { decimals, symbol, name, address };
+  return { decimals, symbol, name, address }
 }
 
 /**
@@ -288,7 +268,7 @@ export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
  * @returns An object containing the pool information.
  */
 export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
-  const publicClient = getPublicClient();
+  const publicClient = getPublicClient()
   const [fee, state, liquidity] = await Promise.all([
     readContract(publicClient, {
       address,
@@ -305,13 +285,13 @@ export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
       abi: POOL_ABI,
       functionName: 'liquidity',
     }) as Promise<string>,
-  ]);
+  ])
   const ticks = await readContract(publicClient, {
     address,
     abi: POOL_ABI,
     functionName: 'ticks',
     args: [state[1]],
-  });
+  })
 
   return {
     fee,
@@ -320,25 +300,25 @@ export async function getPoolInfo(address: `0x${string}`): Promise<PoolInfo> {
     tick: state[1],
     ticks,
     sqrtPriceX96: JSBI.BigInt(state[0].toString()),
-  };
+  }
 }
 
 type ContractCallParams = {
-  address: `0x${string}`;
-  abi: any;
-  functionName: string;
-  args: unknown[];
-  value: bigint;
-  chain?: Chain;
-};
+  address: `0x${string}`
+  abi: any
+  functionName: string
+  args: unknown[]
+  value: bigint
+  chain?: Chain
+}
 
 type TransactionParams = {
-  to: `0x${string}`;
-  value?: bigint;
-  gasLimit?: bigint;
-  data: `0x${string}`;
-  chain?: Chain;
-};
+  to: `0x${string}`
+  value?: bigint
+  gasLimit?: bigint
+  data: `0x${string}`
+  chain?: Chain
+}
 
 /**
  * Type guard to check if the client is a viem WalletClient.
@@ -346,10 +326,8 @@ type TransactionParams = {
  * @param client - The client to check.
  * @returns True if the client is a viem WalletClient, false otherwise.
  */
-function isWalletClient(
-  client: WalletClient | ethers.Signer
-): client is WalletClient {
-  return typeof (client as WalletClient).request === 'function';
+function isWalletClient(client: WalletClient | ethers.Signer): client is WalletClient {
+  return typeof (client as WalletClient).request === 'function'
 }
 
 /**
@@ -362,17 +340,10 @@ function isWalletClient(
  */
 export async function universalWriteContract(
   walletClient: WalletClient | ethers.Signer,
-  params: ContractCallParams
+  params: ContractCallParams,
 ): Promise<string | ethers.TransactionResponse> {
-  const {
-    address,
-    abi,
-    functionName,
-    args = [],
-    value,
-    chain = defaultChain,
-  } = params;
-  console.log('is wallet client');
+  const { address, abi, functionName, args = [], value, chain = defaultChain } = params
+  console.log('is wallet client')
   // Estimate gas
   const estimatedGas = await estimateGasCost({
     address: params.address,
@@ -380,7 +351,7 @@ export async function universalWriteContract(
     functionName: params.functionName,
     args: params.args,
     value: params.value,
-  });
+  })
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
@@ -394,22 +365,22 @@ export async function universalWriteContract(
       gas: estimatedGas,
       account: walletClient.account as Account,
       chain,
-    });
-    return hash;
+    })
+    return hash
   } else {
     // ethers Signer flow
-    const contract = new ethers.Contract(address, abi, walletClient);
-    const overrides: ethers.Overrides = {};
+    const contract = new ethers.Contract(address, abi, walletClient)
+    const overrides: ethers.Overrides = {}
 
     if (value !== undefined) {
-      overrides.value = value;
+      overrides.value = value
     }
     if (estimatedGas !== undefined) {
-      overrides.gasLimit = estimatedGas;
+      overrides.gasLimit = estimatedGas
     }
 
-    const tx = await contract[functionName](...(args as []), overrides);
-    return tx.hash;
+    const tx = await contract[functionName](...(args as []), overrides)
+    return tx.hash
   }
 }
 
@@ -423,13 +394,13 @@ export async function universalWriteContract(
  */
 export async function universalSendTransaction(
   walletClient: WalletClient | ethers.Signer,
-  params: TransactionParams
+  params: TransactionParams,
 ): Promise<string | ethers.TransactionResponse> {
-  const { to, value, gasLimit, data, chain = defaultChain } = params;
+  const { to, value, gasLimit, data, chain = defaultChain } = params
 
   if (isWalletClient(walletClient)) {
     // viem WalletClient flow
-    console.log('is wallet client');
+    console.log('is wallet client')
     const hash = await walletClient.sendTransaction({
       to,
       value,
@@ -437,8 +408,8 @@ export async function universalSendTransaction(
       data,
       chain,
       account: walletClient.account as Account,
-    });
-    return hash;
+    })
+    return hash
   } else {
     // ethers Signer flow
     const tx = await walletClient.sendTransaction({
@@ -446,8 +417,8 @@ export async function universalSendTransaction(
       value,
       gasLimit,
       data,
-    });
-    return tx.hash;
+    })
+    return tx.hash
   }
 }
 
@@ -458,16 +429,16 @@ export async function universalSendTransaction(
  * @returns The transaction hash of the wrap operation.
  */
 export async function wrap(value: bigint) {
-  const writeClient = getWriteClient();
+  const writeClient = getWriteClient()
   const txHash = await universalWriteContract(writeClient, {
     address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
     abi: WIP_ABI,
     functionName: 'deposit',
     args: [],
     value,
-  });
+  })
 
-  return txHash;
+  return txHash
 }
 
 /**
@@ -477,16 +448,16 @@ export async function wrap(value: bigint) {
  * @returns The transaction hash of the unwrap operation.
  */
 export async function unwrap(value: bigint) {
-  const writeClient = getWriteClient();
+  const writeClient = getWriteClient()
   const txHash = await universalWriteContract(writeClient, {
     address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
     abi: WIP_ABI,
     functionName: 'withdraw',
     args: [value],
     value: BigInt(0),
-  });
+  })
 
-  return txHash;
+  return txHash
 }
 
 /**
@@ -495,12 +466,23 @@ export async function unwrap(value: bigint) {
  * @returns The user's pools in V3.
  */
 export async function getUserPoolsV3(): Promise<any> {
-  const address = getAccountAddress();
-  const userPoolsResults = await executeGraphQuery<GraphPoolResponse>(
-    USER_POSITIONS_QUERY,
-    {
-      userId: address?.toLowerCase(),
-    }
-  );
-  return userPoolsResults;
+  const address = getAccountAddress()
+  const userPoolsResults = await executeGraphQuery<GraphPoolResponse>(USER_POSITIONS_QUERY, {
+    userId: address?.toLowerCase(),
+  })
+  return userPoolsResults
+}
+
+/**
+ * Creates a Currency instance from a token.
+ *
+ * @returns Currency instance.
+ */
+export const getCurrencyInstance = (token: TokenInfo | null) => {
+  if (!token) return null
+  const currency =
+    token?.address === ADDRESSES.TOKENS.IP.id
+      ? IP.onChain(ADDRESSES.CHAIN_ID)
+      : new Token(ADDRESSES.CHAIN_ID, token?.address, token?.decimals, token?.symbol)
+  return { token: currency.wrapped, currency }
 }
