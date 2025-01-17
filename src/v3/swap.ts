@@ -7,7 +7,7 @@ import { encodeFunctionData, formatUnits } from 'viem'
 import { SWAP_ROUTER_ABI } from './abi'
 import { getAccountAddress, getWriteClient } from '../config'
 import { ethers } from 'ethers'
-import { Percent, Token, TradeType } from '@storyhunt/sdk-core'
+import { IP, Percent, Token, TradeType } from '@storyhunt/sdk-core'
 
 /**
  * Executes a swap using StoryHunt V3.
@@ -29,7 +29,7 @@ import { Percent, Token, TradeType } from '@storyhunt/sdk-core'
  * ```
  */
 export async function swapV3(
-  trade: Trade<Token, Token, TradeType>,
+  trade: Trade<Token | IP, Token | IP, TradeType>,
 ): Promise<string | ethers.TransactionResponse | Error> {
   const walletClient = getWriteClient()
   const address = getAccountAddress()
@@ -39,13 +39,15 @@ export async function swapV3(
       throw new Error('No connected address found')
     }
 
-    const tokenInAddress = trade.inputAmount.currency.address as `0x${string}`
+    const tokenInAddress = trade.inputAmount.currency.wrapped.address as `0x${string}`
     if (!tokenInAddress) {
       throw new Error('Input token must have an address')
     }
 
     // Check balance
-    const tokenBalance = await getTokenBalance(tokenInAddress)
+    const tokenBalance = await getTokenBalance(
+      trade.inputAmount.currency.isNative ? ADDRESSES.TOKENS.IP.id : tokenInAddress,
+    )
     const formattedBalance = Number(formatUnits(tokenBalance.value, tokenBalance.decimals))
     const inputAmount = BigInt(trade.inputAmount.toFixed(0))
     const requiredMinimum = BigInt(100) // Arbitrary minimum

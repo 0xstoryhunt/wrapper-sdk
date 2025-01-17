@@ -19,7 +19,7 @@ import {
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
 
-import { Token } from '@storyhunt/sdk-core'
+import { IP, Token, TradeType } from '@storyhunt/sdk-core'
 import { Trade } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
 import { parseUnits } from 'viem'
@@ -85,7 +85,12 @@ describe('swap', () => {
     const amountIn = BigInt(10 ** 15) //  0.001 WIP
 
     // Get a route for the swap
-    const routes: Trade<Token, Token, any>[] | Error = await swapRouterV3(tokenIn, tokenOut, amountIn, true)
+    const routes: Trade<IP | Token, IP | Token, TradeType>[] | Error = await swapRouterV3(
+      tokenIn,
+      tokenOut,
+      amountIn,
+      true,
+    )
     if (routes instanceof Error) {
       console.log('[Route/error]', routes)
       return
