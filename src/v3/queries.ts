@@ -148,7 +148,7 @@ query Pool($condition: [Pool_filter!]!) {
  */
 export const USER_POSITIONS_QUERY = `
   query MyQuery($userId: Bytes!) {
-    positions(where: { owner: $userId }, orderBy: id, orderDirection: desc) {
+    positions(where: { or: [{ owner : $userId}, {staker: $userId}]}, orderBy: id, orderDirection: desc) {
       id
       owner
       collectedFeesToken0
@@ -160,6 +160,17 @@ export const USER_POSITIONS_QUERY = `
       feeGrowthInside1LastX128
       feeGrowthInside0LastX128
       liquidity
+      isStaked
+      rewards {
+        earned
+        token {
+          name
+          symbol
+          decimals
+          derivedIP
+          id
+        }
+      }
       token0 {
         decimals
         feesUSD
@@ -212,6 +223,32 @@ export const USER_POSITIONS_QUERY = `
         token1Price
         tick
         ticks
+        feeAPRIP
+        totalValueLockedUSD
+        lmPool {
+          id
+          stakedLiquidity
+          allocPoint
+          stakedLiquidityUSD
+          alphaHunter {
+            totalAllocPoint
+            rewardPeriods (first:100){
+              rewardTokens (first:100){
+                id
+                token {
+                  id
+                  name
+                  symbol
+                  decimals
+                  derivedIP
+                }
+                rewardRate
+                startTime
+                endTime
+              }
+            }
+          }
+        }
       }
       tickLower {
         id
@@ -261,8 +298,17 @@ export const USER_POSITIONS_QUERY = `
  */
 export const POSITIONS_QUERY = `
 query MyQuery($positionId: ID!, $owner: Bytes!) {
-  positions(where: {id: $positionId, owner: $owner}){
-    id
+   positions(where: {
+     and: [
+        {
+          id: $positionId,
+        },
+        {
+          or: [{ owner: $owner }, { staker: $owner }]
+        }
+      ]
+    }) {
+      id
       owner
       collectedFeesToken0
       collectedFeesToken1
@@ -273,6 +319,17 @@ query MyQuery($positionId: ID!, $owner: Bytes!) {
       feeGrowthInside1LastX128
       feeGrowthInside0LastX128
       liquidity
+      isStaked
+      rewards {
+        earned
+        token {
+          name
+          symbol
+          decimals
+          derivedIP
+          id
+        }
+      }
       token0 {
         decimals
         feesUSD
@@ -327,6 +384,32 @@ query MyQuery($positionId: ID!, $owner: Bytes!) {
         ticks {
           id
         }
+        feeAPRIP
+        totalValueLockedUSD
+        lmPool {
+          id
+          stakedLiquidity
+          allocPoint
+          stakedLiquidityUSD
+          alphaHunter {
+          totalAllocPoint
+            rewardPeriods (first:100){
+              rewardTokens (first:100){
+                id
+                token {
+                  id
+                  name
+                  symbol
+                  decimals
+                  derivedIP
+                }
+                rewardRate
+                startTime
+                endTime
+              }
+            }
+          }
+        }  
       }
       tickLower {
         id

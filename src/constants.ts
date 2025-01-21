@@ -134,6 +134,7 @@ const ADDRESSES_CONFIG = {
     V3_POOL_FACTORY_CONTRACT_ADDRESS: '0x6A76afC7417fd6A57fEAe35fB53Fd51eDc08C1ba',
     V3_SWAP_ROUTER_CONTRACT_ADDRESS: '0xf6b5DaC44dff54069B07dC8919eb35c001d0864c',
     V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS: '0xe66015EFdAFc8a116B91e83d02AfB4f737835BA3',
+    V3_ALPHAHUNTER_ADDRESS: '0xDCf82E9ebB881e8dBA71DA256cB60Ea927F8C317',
   },
   // TESTNET: {},
   // MAINNET: {},
@@ -168,7 +169,7 @@ export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(JSBI.BigInt(500), JSBI.Big
 const SUBGRAPH_URLS = {
   TESTNET: '',
   ODYSSEY:
-    'https://api.goldsky.com/api/public/project_cm5h7s6wzpi4a01uz3ffh5rar/subgraphs/storyhunt-odyssey-testnet/1.0.2-alpha/gn',
+    'https://api.goldsky.com/api/public/project_cm5h7s6wzpi4a01uz3ffh5rar/subgraphs/storyhunt-odyssey-testnet/1.0.3-alpha/gn',
 }
 
 /**

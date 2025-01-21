@@ -1,6 +1,6 @@
 {
   "name": "@storyhunt/wrapper-sdk",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
   "license": "MIT",

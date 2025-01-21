@@ -15,6 +15,9 @@ import {
   v3PositionManagertokenApproval,
   getUserPoolsV3,
   v3RoutertokenApproval,
+  harvestPosition,
+  stakePosition,
+  unstakePosition,
 } from '.'
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
@@ -24,8 +27,8 @@ import { Trade } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
 import { parseUnits } from 'viem'
 
-const privateKey = process.env.TEST_PRIVATE_KEY as `0x${string}`
-const expectedAddress = process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
+const privateKey = '' as `0x${string}` //process.env.TEST_PRIVATE_KEY as `0x${string}`
+const expectedAddress = '' as `0x${string}` //process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -51,10 +54,10 @@ describe('config wallet client using viem', () => {
 })
 
 describe('routing', () => {
-  test('routing wip/FATE to be defined', async () => {
+  test('routing WIP/USDC to be defined', async () => {
     const tokenIn = ADDRESSES.TOKENS.WIP.id // WIP token
-    const tokenOut = ADDRESSES.TOKENS.FATE.id // FATE token
-    const amount = BigInt(10 ** 15) // 0.001 WIP
+    const tokenOut = ADDRESSES.TOKENS.USDC.id // USDC token
+    const amount = BigInt(10 ** 18) // 0.001 WIP
 
     const routes = await swapRouterV3(tokenIn, tokenOut, amount, false)
     expect(routes).toBeDefined()
@@ -79,10 +82,10 @@ describe('swap', () => {
     }
   }, 60000)
 
-  test('should execute a successful swap from 0.001 WIP to FATE', async () => {
+  test('should execute a successful swap from 0.001 WIP to USDC', async () => {
     const tokenIn = ADDRESSES.TOKENS.WIP.id
-    const tokenOut = ADDRESSES.TOKENS.FATE.id
-    const amountIn = BigInt(10 ** 15) //  0.001 WIP
+    const tokenOut = ADDRESSES.TOKENS.USDC.id
+    const amountIn = BigInt(10 ** 18) //  0.001 WIP
 
     // Get a route for the swap
     const routes: Trade<IP | Token, IP | Token, TradeType>[] | Error = await swapRouterV3(
@@ -179,9 +182,9 @@ describe('Wrap and Unwrap Integration Tests', () => {
 
 describe('Pool Operations', () => {
   const tokenA = ADDRESSES.TOKENS.WIP
-  const tokenB = ADDRESSES.TOKENS.JUTSU
-  const fee = 3000 // 0.3%
-  const desirePrice = 1 // 1 WIP = 1 FATE
+  const tokenB = ADDRESSES.TOKENS.USDC
+  const fee = 500 // 0.3%
+  const desirePrice = 15.5 // 1 WIP = 1 USDC
   let positionId = 1
 
   test('should create a new pool', async () => {
@@ -198,13 +201,13 @@ describe('Pool Operations', () => {
   test('already has a pool', async () => {
     const error = await createPoolV3(tokenA.id, tokenB.id, desirePrice, fee)
     if (error instanceof Error) {
-      expect(error.message).toBe('Pool already exists!')
+      expect(error.message).toContain('Pool already exists!')
     }
   }, 60000)
 
   test('should get allowance for adding liquidity', async () => {
     const amountA = 10 // 10 IP
-    const amountB = 10 // 10 FATE
+    const amountB = 10 // 10 USDC
 
     const amount0Desired = JSBI.BigInt(parseUnits(amountA.toFixed(tokenA.decimals), tokenA.decimals).toString())
     const amount1Desired = JSBI.BigInt(parseUnits(amountB.toFixed(tokenB.decimals), tokenB.decimals).toString())
@@ -239,7 +242,7 @@ describe('Pool Operations', () => {
 
   test('should add initial liquidity to the pool', async () => {
     const amountA = 10 // 10 IP
-    const amountB = 10 // 10 FATE
+    const amountB = 10 // 10 USDC
 
     const result = await addLiquidityV3(
       tokenA.id,
@@ -258,7 +261,7 @@ describe('Pool Operations', () => {
   test('Wait 30 seconds before retrieving user pools', async () => {
     console.log('Waiting for 30 seconds before the next test...')
     await sleep(30000) // Wait for 30 seconds
-  }, 60000)
+  }, 31000)
 
   test('Retrieve user pools to obtain latest position ID', async () => {
     const userPools = await getUserPoolsV3()
@@ -266,7 +269,7 @@ describe('Pool Operations', () => {
     expect(userPools).toBeDefined()
     expect(userPools instanceof Error).toBe(false)
     expect(Array.isArray(userPools.data?.positions)).toBe(true)
-    //console.log('positions : ', userPools.data?.positions);
+    console.log('positions : ', userPools)
     expect(userPools.data?.positions.length).toBeGreaterThan(0)
 
     // Assume the latest position is the one we just added
@@ -278,7 +281,7 @@ describe('Pool Operations', () => {
 
   test('should add liquidity to the same position', async () => {
     const additionalAmountA = 10 // 10 IP
-    const additionalAmountB = 10 // 10 FATE
+    const additionalAmountB = 10 // 10 USDC
 
     const result = await addPositionLiquidityV3(positionId, additionalAmountA, additionalAmountB)
     console.log(result)
@@ -286,17 +289,58 @@ describe('Pool Operations', () => {
     expect(typeof result).toBe('string')
   }, 60000)
 
+  test('should collect fees from the position', async () => {
+    const result = await collectFeeV3(positionId)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string') // Transaction hash
+  }, 60000)
+
+  test('Wait 30 seconds before staking', async () => {
+    console.log('Waiting for 30 seconds before staking...')
+    await sleep(30000) // Wait for 30 seconds
+  }, 31000)
+
+  test('should stake liquidity position', async () => {
+    const result = await stakePosition(positionId)
+    console.log(result)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string')
+  }, 60000)
+
+  test('Wait 30 seconds before harvesting', async () => {
+    console.log('Waiting for 30 seconds before harvesting...')
+    await sleep(30000) // Wait for 30 seconds
+  }, 31000)
+
+  test('should harvest rewards from staked liquidity position', async () => {
+    const result = await harvestPosition(positionId)
+    console.log(result)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string')
+  }, 60000)
+
+  test('Wait 30 seconds before unstaking', async () => {
+    console.log('Waiting for 30 seconds before unstaking...')
+    await sleep(30000) // Wait for 30 seconds
+  }, 31000)
+
+  test('should unstake liquidity position', async () => {
+    const result = await unstakePosition(positionId)
+    console.log(result)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string')
+  }, 60000)
+
+  test('Wait 30 seconds before removing liquidity', async () => {
+    console.log('Waiting for 30 seconds before removing liquidity...')
+    await sleep(30000) // Wait for 30 seconds
+  }, 31000)
+
   test('should remove liquidity from the position', async () => {
     const liquidityToRemove = 100 // 50% worth of liquidity
 
     const result = await removeLiquidityV3(positionId, liquidityToRemove)
     console.log(result)
-    expect(result).toBeDefined()
-    expect(typeof result).toBe('string') // Transaction hash
-  }, 60000)
-
-  test('should collect fees from the position', async () => {
-    const result = await collectFeeV3(positionId)
     expect(result).toBeDefined()
     expect(typeof result).toBe('string') // Transaction hash
   }, 60000)
