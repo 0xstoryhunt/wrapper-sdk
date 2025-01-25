@@ -2,7 +2,7 @@ import { createPublicClient, createWalletClient, http, WalletClient, PublicClien
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
 import { Signer } from 'ethers'
 import { defaultChain, SUBGRAPH_URL } from './constants'
-import { createClient, fetchExchange } from 'urql'
+import { AnyVariables, createClient, DocumentInput, fetchExchange } from 'urql'
 import { SwapAlphaRouter } from '@storyhunt/smart-order-router'
 
 let publicClient: PublicClient | undefined
@@ -111,7 +111,7 @@ export const graphClient = createClient({
  * @param variables - Optional variables for the query.
  * @returns A promise that resolves with the query result.
  */
-export async function executeGraphQuery<T>(query: unknown, variables: Record<string, any> = {}) {
+export async function executeGraphQuery<T>(query: DocumentInput<T, AnyVariables>, variables: Record<string, any> = {}) {
   return await graphClient.query<T>(query, variables, { requestPolicy: 'network-only' }).toPromise()
 }
 
