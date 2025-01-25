@@ -57,7 +57,7 @@ describe('routing', () => {
   test('routing WIP/USDC to be defined', async () => {
     const tokenIn = ADDRESSES.TOKENS.WIP.id // WIP token
     const tokenOut = ADDRESSES.TOKENS.USDC.id // USDC token
-    const amount = BigInt(10 ** 18) // 0.001 WIP
+    const amount = '1' // 1 WIP
 
     const routes = await swapRouterV3(tokenIn, tokenOut, amount, false)
     expect(routes).toBeDefined()
@@ -85,7 +85,7 @@ describe('swap', () => {
   test('should execute a successful swap from 0.001 WIP to USDC', async () => {
     const tokenIn = ADDRESSES.TOKENS.WIP.id
     const tokenOut = ADDRESSES.TOKENS.USDC.id
-    const amountIn = BigInt(10 ** 18) //  0.001 WIP
+    const amountIn = '1' //  1 WIP
 
     // Get a route for the swap
     const routes: Trade<IP | Token, IP | Token, TradeType>[] | Error = await swapRouterV3(

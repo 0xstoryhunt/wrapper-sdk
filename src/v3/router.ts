@@ -1,20 +1,14 @@
-import { Pool, Tick, TickListDataProvider, Trade } from '@storyhunt/v3-sdk'
-import JSBI from 'jsbi'
-
-import { ADDRESSES, defaultChainId } from '../constants'
-import { getTokenInfo } from '../utils'
-import { GraphPoolResponse } from './types'
-import { POOLWTOKEN_QUERY } from './queries'
-import { executeGraphQuery } from '../config'
-import { Token, TradeType, CurrencyAmount, IP } from '@storyhunt/sdk-core'
-import { findOptimalPathAStar } from './path'
+import { Currency } from '@storyhunt/sdk-core'
+import { getAccountAddress, routerInstance } from '../config'
+import { Trade } from '@storyhunt/v3-sdk'
+import { defaultChainId } from '../constants'
 
 /**
  * Executes a swap using the StoryHunt V3 SDK.
  *
  * @param tokenIn - The address of the input token.
  * @param tokenOut - The address of the output token.
- * @param amount - The amount of the input or output token, depending on the `exactIn` parameter.
+ * @param amount - Parsed amount of the input or output token, depending on the `exactIn` parameter.
  * @param exactIn - If true, the swap is executed with an exact input amount. If false, the swap is executed with an exact output amount.
  * @returns A promise that resolves to an array of `Trade` objects or an `Error`.
  *
@@ -23,10 +17,28 @@ import { findOptimalPathAStar } from './path'
 export async function swapRouterV3(
   tokenIn: string,
   tokenOut: string,
-  amount: bigint,
+  amount: string,
   exactIn: boolean,
-): Promise<Trade<Token | IP, Token | IP, TradeType>[] | Error> {
+): Promise<Trade<Currency, Currency, any>[] | Error> {
   try {
+    const address = getAccountAddress()
+    if (!address) {
+      throw new Error('No connected address found')
+    }
+    const swapData = await routerInstance.getSwapRouteData({
+      tokenIn,
+      tokenOut,
+      amount,
+      exactIn,
+      chainId: defaultChainId,
+      recipient: address,
+    })
+    if (!swapData) {
+      throw new Error('No trade found')
+    }
+    const bestTrade = [swapData?.trade]
+    /** @deprecated FALLBACK CODE TO GET ALL RELATED POOLS
+     * 
     const tokenInInfo = await getTokenInfo(tokenIn as `0x${string}`)
     const tokenOutInfo = await getTokenInfo(tokenOut as `0x${string}`)
 
@@ -51,6 +63,7 @@ export async function swapRouterV3(
             tokenOutInfo!.symbol,
             tokenOutInfo!.name,
           )
+
     const { path } = await findOptimalPathAStar(
       currencyIn.wrapped.address.toLowerCase(),
       currencyOut.wrapped.address.toLowerCase(),
@@ -132,11 +145,11 @@ export async function swapRouterV3(
           CurrencyAmount.fromRawAmount(currencyOut, JSBI.BigInt(amount.toString())),
           { maxHops: 3, maxNumResults: 1 },
         )
-
+ */
     if (bestTrade.length === 0) {
       throw new Error('No trade found')
     }
-    return bestTrade
+    return bestTrade as any
   } catch (error: any) {
     console.error('Error in swap:', error)
     return error
