@@ -3,6 +3,7 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules"],
   "compilerOptions": {
+    "resolveJsonModule": true,
     "target": "es6",
     "module": "CommonJS",
     "lib": ["dom", "esnext"],

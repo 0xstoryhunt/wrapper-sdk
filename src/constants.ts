@@ -1,5 +1,6 @@
+import DEFAULT_ADDRESS_LIST from '@storyhunt/default-list/build/storyhunt-default.constantlist.json'
 import { defineChain } from 'viem'
-import { Fraction } from '@storyhunt/sdk-core'
+import { ChainId, Fraction } from '@storyhunt/sdk-core'
 import JSBI from 'jsbi'
 
 /**
@@ -131,10 +132,11 @@ const ADDRESSES_CONFIG = {
     V2_POOL_FACTORY_CONTRACT_ADDRESS: '0x...',
     V2_SWAP_ROUTER_CONTRACT_ADDRESS: '0x...',
     //V3
-    V3_POOL_FACTORY_CONTRACT_ADDRESS: '0x6A76afC7417fd6A57fEAe35fB53Fd51eDc08C1ba',
-    V3_SWAP_ROUTER_CONTRACT_ADDRESS: '0xf6b5DaC44dff54069B07dC8919eb35c001d0864c',
-    V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS: '0xe66015EFdAFc8a116B91e83d02AfB4f737835BA3',
-    V3_ALPHAHUNTER_ADDRESS: '0xDCf82E9ebB881e8dBA71DA256cB60Ea927F8C317',
+    V3_POOL_FACTORY_CONTRACT_ADDRESS: DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].V3_FACTORY_CONTRACT.address,
+    V3_SWAP_ROUTER_CONTRACT_ADDRESS: DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].SWAP_ROUTER_ADDRESS.address,
+    V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS:
+      DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].NFT_POSITION_MANAGER_ADDRESS.address,
+    V3_ALPHAHUNTER_ADDRESS: DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].ALPHA_HUNTER_ADDRESS.address,
   },
   // TESTNET: {},
   // MAINNET: {},
@@ -168,8 +170,7 @@ export const ALLOWED_PRICE_IMPACT_HIGH = new Fraction(JSBI.BigInt(500), JSBI.Big
  */
 const SUBGRAPH_URLS = {
   TESTNET: '',
-  ODYSSEY:
-    'https://api.goldsky.com/api/public/project_cm5h7s6wzpi4a01uz3ffh5rar/subgraphs/storyhunt-odyssey-testnet/1.0.3-alpha/gn',
+  ODYSSEY: DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].SUBGRAPH_URL.url,
 }
 
 /**
