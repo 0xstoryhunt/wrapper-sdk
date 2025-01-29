@@ -1,7 +1,8 @@
-import DEFAULT_ADDRESS_LIST from '@storyhunt/default-list/build/storyhunt-default.constantlist.json'
+import DEFAULT_ADDRESS_LIST from '@storyhunt/default-list/build/storyhunt-default.constantlist.json' assert { type: 'json' }
 import { defineChain } from 'viem'
-import { ChainId, Fraction } from '@storyhunt/sdk-core'
+import { Fraction } from '@storyhunt/sdk-core'
 import JSBI from 'jsbi'
+import { ChainId } from '@storyhunt/smart-order-router'
 
 /**
  * Defines the available blockchain networks and their configurations.
@@ -137,6 +138,10 @@ const ADDRESSES_CONFIG = {
     V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS:
       DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].NFT_POSITION_MANAGER_ADDRESS.address,
     V3_ALPHAHUNTER_ADDRESS: DEFAULT_ADDRESS_LIST.constants[ChainId.ODYSSEY].ALPHA_HUNTER_ADDRESS.address,
+  },
+  STORY: {
+    CHAIN_ID: 1514,
+    WIP: '0x1516000000000000000000000000000000000000',
   },
   // TESTNET: {},
   // MAINNET: {},

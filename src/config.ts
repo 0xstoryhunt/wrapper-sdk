@@ -3,7 +3,7 @@ import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
 import { Signer } from 'ethers'
 import { defaultChain, SUBGRAPH_URL } from './constants'
 import { AnyVariables, createClient, DocumentInput, fetchExchange } from 'urql'
-import { SwapAlphaRouter } from '@storyhunt/smart-order-router'
+import { ChainId, SwapAlphaRouter } from '@storyhunt/smart-order-router'
 
 let publicClient: PublicClient | undefined
 let walletClient: WalletClient | undefined
@@ -151,4 +151,5 @@ const rpcUrl = 'https://odyssey.storyrpc.io'
 export const routerInstance = SwapAlphaRouter.getInstance(
   process.env.JSON_RPC_URL || rpcUrl,
   _graph_url || SUBGRAPH_URL,
+  ChainId.ODYSSEY,
 )
