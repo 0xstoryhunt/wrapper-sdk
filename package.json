@@ -1,20 +1,27 @@
 {
   "name": "@storyhunt/wrapper-sdk",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
   "license": "MIT",
   "repository": "https://github.com/0xstoryhunt/storyhunt-sdk.git",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "type": "module",
+  "type": "module", 
+  "exports": { 
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs" 
+    }
+  },
   "keywords": [
     "storyhunt",
     "dex",
     "sdk"
   ],
   "files": [
-    "dist"
+    "dist" 
   ],
   "scripts": {
     "build": "npm run ts-check && npm run build-lib",
