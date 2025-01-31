@@ -1,6 +1,6 @@
 {
   "name": "@storyhunt/wrapper-sdk",
-  "version": "1.0.91",
+  "version": "1.1.0",
   "author": "StoryHunt Org",
   "description": "StoryHunt SDK for interacting with storyhunt contracts",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "@ethersproject/solidity": "^5.7.0",
     "@storyhunt/default-list": "^1.0.5",
     "@storyhunt/sdk-core": "^1.0.3",
-    "@storyhunt/smart-order-router": "^0.2.7",
+    "@storyhunt/smart-order-router": "^0.2.8",
     "@storyhunt/v3-sdk": "^1.0.9",
     "@wagmi/core": "^2.6.5",
     "ethers": "^6.13.4",
@@ -60,6 +60,7 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.6.3",
     "tsup": "^8.1.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.5"
   },
   "prettier": {

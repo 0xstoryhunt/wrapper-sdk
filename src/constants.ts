@@ -1,8 +1,7 @@
 import DEFAULT_ADDRESS_LIST from '@storyhunt/default-list/build/storyhunt-default.constantlist.json' assert { type: 'json' }
 import { defineChain } from 'viem'
-import { Fraction } from '@storyhunt/sdk-core'
+import { Fraction, ChainId } from '@storyhunt/sdk-core'
 import JSBI from 'jsbi'
-import { ChainId } from '@storyhunt/smart-order-router'
 
 /**
  * Defines the available blockchain networks and their configurations.
