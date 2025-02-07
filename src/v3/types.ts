@@ -103,6 +103,7 @@ export interface PositionData {
   pool: GraphPool
   tickLower: GraphTick
   tickUpper: GraphTick
+  isStaked: boolean
 }
 
 /**

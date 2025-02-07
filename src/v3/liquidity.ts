@@ -1,4 +1,5 @@
 import {
+  AlphaHunterV3,
   encodeSqrtRatioX96,
   MintOptions,
   nearestUsableTick,
@@ -303,14 +304,20 @@ export async function addPositionLiquidityV3(
       throw new Error(`Insufficient balance ${token1.symbol}`)
     }
 
+    const isStaked = positionData.data?.positions[0].isStaked
+
     // Check allowance
     const allowance0Raw = await getAllowence(
       token0.id,
-      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      isStaked
+        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
     )
     const allowance1Raw = await getAllowence(
       token1.id,
-      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      isStaked
+        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
     )
 
     // Convert allowances to BigInt for accurate comparison
@@ -318,10 +325,14 @@ export async function addPositionLiquidityV3(
     const allowance1 = JSBI.BigInt(allowance1Raw.toString())
 
     if (JSBI.lessThan(allowance0, amount0Desired)) {
-      throw new Error(`Insufficient allowance for token ${token0.symbol}`)
+      throw new Error(
+        `Insufficient allowance from ${isStaked ? `AlphaHunterV3` : `NFTPositionManager`} for token ${token0.symbol}`,
+      )
     }
     if (JSBI.lessThan(allowance1, amount1Desired)) {
-      throw new Error(`Insufficient allowance for token ${token1.symbol}`)
+      throw new Error(
+        `Insufficient allowance from ${isStaked ? `AlphaHunterV3` : `NFTPositionManager`} for token ${token1.symbol}`,
+      )
     }
 
     //token instances
@@ -356,9 +367,12 @@ export async function addPositionLiquidityV3(
       useNative: token0Instance.isNative ? token0Instance : token1Instance.isNative ? token1Instance : undefined,
     }
 
-    const { calldata, value } = NonfungiblePositionManager.addCallParameters(positionToIncreaseBy, addLiquidityOptions)
+    const { calldata, value } = (isStaked ? AlphaHunterV3 : NonfungiblePositionManager).addCallParameters(
+      positionToIncreaseBy,
+      addLiquidityOptions,
+    )
 
-    console.log('adding liquidity to position value : ', value)
+    console.log(`adding liquidity to ${isStaked ? `staked` : ``} position value`)
 
     /** REFUND CALLDATA */
     const refundIPCalldata = encodeFunctionData({
@@ -378,8 +392,10 @@ export async function addPositionLiquidityV3(
     const transaction = {
       chainId: ADDRESSES.CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
-      data: finalEncoding,
+      to: isStaked
+        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+      data: isStaked ? (calldata as `0x${string}`) : finalEncoding,
       value: integerValue,
       gasLimit: BigInt(4000000),
       chain: defaultChain,
@@ -427,6 +443,8 @@ export async function removeLiquidityV3(
       (token1.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token1.id) as `0x${string}`,
     )
 
+    const isStaked = positionData.data?.positions[0].isStaked
+
     console.log(' position to remove ', positionData.data?.positions[0])
 
     //token instances
@@ -464,10 +482,15 @@ export async function removeLiquidityV3(
       },
     }
 
-    const { calldata, value } = NonfungiblePositionManager.removeCallParameters(positionSDK, removeLiquidityOptions)
+    const { calldata, value } = (isStaked ? AlphaHunterV3 : NonfungiblePositionManager).removeCallParameters(
+      positionSDK,
+      removeLiquidityOptions,
+    )
 
     const transaction = {
-      to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      to: isStaked
+        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
       data: calldata as `0x${string}`,
       value: BigInt(value),
       gasLimit: BigInt(4000000),
@@ -504,6 +527,8 @@ export async function collectFeeV3(positionId: number): Promise<string | ethers.
     if (!positionData.data?.positions) throw new Error('Position not found')
     const { token0, token1 } = positionData.data?.positions[0]
 
+    const isStaked = positionData.data?.positions[0].isStaked
+
     const token0Info = await getTokenInfo(
       (token0.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token0.id) as `0x${string}`,
     )
@@ -520,7 +545,6 @@ export async function collectFeeV3(positionId: number): Promise<string | ethers.
 
     // Convert tokensOwed to raw amounts
     const amount0Raw = parseUnits(token0.feesUSD, token0Instance.decimals).toString()
-
     const amount1Raw = parseUnits(token1.feesUSD, token1Instance.decimals).toString()
 
     const collectOptions = {
@@ -530,10 +554,14 @@ export async function collectFeeV3(positionId: number): Promise<string | ethers.
       recipient: address,
     }
 
-    const { calldata, value } = NonfungiblePositionManager.collectCallParameters(collectOptions)
+    const { calldata, value } = (isStaked ? AlphaHunterV3 : NonfungiblePositionManager).collectCallParameters(
+      collectOptions,
+    )
 
     const transaction = {
-      to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      to: isStaked
+        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
       data: calldata as `0x${string}`,
       value: BigInt(value),
       gasLimit: BigInt(4000000),

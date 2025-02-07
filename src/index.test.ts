@@ -27,8 +27,8 @@ import { Trade } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
 import { parseUnits } from 'viem'
 
-const privateKey = '0x49abe57bd6711a7f0769c54b46ec3f767863369afd88b85fff2430f4ffca3997' //process.env.TEST_PRIVATE_KEY as `0x${string}`
-const expectedAddress = '0xc173bB17b5D2C7BCEd8a6f50E6F9c1bD6bde48DD' //process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
+const privateKey = '' //process.env.TEST_PRIVATE_KEY as `0x${string}`
+const expectedAddress = '' //process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -184,7 +184,7 @@ describe('Pool Operations', () => {
   const tokenA = ADDRESSES.TOKENS.WIP
   const tokenB = ADDRESSES.TOKENS.USDC
   const fee = 500 // 0.3%
-  const desirePrice = 15.5 // 1 WIP = 1 USDC
+  const desirePrice = 10 // 1 WIP = 1 USDC
   let positionId = 1
 
   test('should create a new pool', async () => {
@@ -207,7 +207,7 @@ describe('Pool Operations', () => {
 
   test('should get allowance for adding liquidity', async () => {
     const amountA = 10 // 10 IP
-    const amountB = 10 // 10 USDC
+    const amountB = 100 // 10 USDC
 
     const amount0Desired = JSBI.BigInt(parseUnits(amountA.toFixed(tokenA.decimals), tokenA.decimals).toString())
     const amount1Desired = JSBI.BigInt(parseUnits(amountB.toFixed(tokenB.decimals), tokenB.decimals).toString())
@@ -242,7 +242,7 @@ describe('Pool Operations', () => {
 
   test('should add initial liquidity to the pool', async () => {
     const amountA = 10 // 10 IP
-    const amountB = 10 // 10 USDC
+    const amountB = 100 // 10 USDC
 
     const result = await addLiquidityV3(
       tokenA.id,
@@ -260,7 +260,7 @@ describe('Pool Operations', () => {
 
   test('Wait 30 seconds before retrieving user pools', async () => {
     console.log('Waiting for 30 seconds before the next test...')
-    await sleep(30000) // Wait for 30 seconds
+    await sleep(20000) // Wait for 30 seconds
   }, 31000)
 
   test('Retrieve user pools to obtain latest position ID', async () => {
@@ -280,8 +280,8 @@ describe('Pool Operations', () => {
   }, 60000)
 
   test('should add liquidity to the same position', async () => {
-    const additionalAmountA = 10 // 10 IP
-    const additionalAmountB = 10 // 10 USDC
+    const additionalAmountA = 5 // 10 IP
+    const additionalAmountB = 50 // 10 USDC
 
     const result = await addPositionLiquidityV3(positionId, additionalAmountA, additionalAmountB)
     console.log(result)
@@ -297,7 +297,7 @@ describe('Pool Operations', () => {
 
   test('Wait 30 seconds before staking', async () => {
     console.log('Waiting for 30 seconds before staking...')
-    await sleep(30000) // Wait for 30 seconds
+    await sleep(20000) // Wait for 30 seconds
   }, 31000)
 
   test('should stake liquidity position', async () => {
@@ -307,9 +307,39 @@ describe('Pool Operations', () => {
     expect(typeof result).toBe('string')
   }, 60000)
 
+  test('Wait 30 seconds before adding liquidity to staked position', async () => {
+    console.log('Waiting for 30 seconds before harvesting...')
+    await sleep(20000) // Wait for 30 seconds
+  }, 31000)
+
+  test('should add liquidity to staked position', async () => {
+    const additionalAmountA = 5 // 10 IP
+    const additionalAmountB = 50 // 10 USDC
+
+    const result = await addPositionLiquidityV3(positionId, additionalAmountA, additionalAmountB)
+    console.log(result)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string')
+  }, 60000)
+
+  test('should collect fees from the position when staked', async () => {
+    const result = await collectFeeV3(positionId)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string') // Transaction hash
+  }, 60000)
+
+  test('should remove liquidity from the staked position', async () => {
+    const liquidityToRemove = 25 // 25% worth of liquidity
+
+    const result = await removeLiquidityV3(positionId, liquidityToRemove)
+    console.log(result)
+    expect(result).toBeDefined()
+    expect(typeof result).toBe('string') // Transaction hash
+  }, 60000)
+
   test('Wait 30 seconds before harvesting', async () => {
     console.log('Waiting for 30 seconds before harvesting...')
-    await sleep(30000) // Wait for 30 seconds
+    await sleep(20000) // Wait for 30 seconds
   }, 31000)
 
   test('should harvest rewards from staked liquidity position', async () => {
@@ -321,7 +351,7 @@ describe('Pool Operations', () => {
 
   test('Wait 30 seconds before unstaking', async () => {
     console.log('Waiting for 30 seconds before unstaking...')
-    await sleep(30000) // Wait for 30 seconds
+    await sleep(20000) // Wait for 30 seconds
   }, 31000)
 
   test('should unstake liquidity position', async () => {
@@ -333,7 +363,7 @@ describe('Pool Operations', () => {
 
   test('Wait 30 seconds before removing liquidity', async () => {
     console.log('Waiting for 30 seconds before removing liquidity...')
-    await sleep(30000) // Wait for 30 seconds
+    await sleep(20000) // Wait for 30 seconds
   }, 31000)
 
   test('should remove liquidity from the position', async () => {

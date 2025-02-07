@@ -5,7 +5,7 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "target": "es6",
-    "module": "Preserve",
+    "module": "ESNext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
