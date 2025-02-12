@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, WalletClient, PublicClient, Address } from 'viem'
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
 import { Signer } from 'ethers'
-import { defaultChain, SUBGRAPH_URL } from './constants'
+import { defaultChain } from './constants'
 import { AnyVariables, createClient, DocumentInput, fetchExchange } from 'urql'
 import { SwapAlphaRouter } from '@storyhunt/smart-order-router'
 import { ChainId } from '@storyhunt/sdk-core'
@@ -10,7 +10,8 @@ let publicClient: PublicClient | undefined
 let walletClient: WalletClient | undefined
 let ethersSigner: Signer | undefined
 let accountAddress: string | undefined
-let _graph_url: string | undefined
+let _graph_url: string = ''
+let _graph_auth: string = ''
 
 /**
  * Initialize clients for the SDK.
@@ -23,11 +24,13 @@ let _graph_url: string | undefined
 export async function initClient(options: {
   privateKey?: string
   ethersSigner?: Signer
-  graph_url?: string
+  graph_url: string
+  graph_auth: string
 }): Promise<void> {
-  const { privateKey, ethersSigner: signer, graph_url } = options
+  const { privateKey, ethersSigner: signer, graph_url, graph_auth } = options
   const chain = defaultChain
   _graph_url = graph_url ?? undefined
+  _graph_auth = graph_auth ?? undefined
 
   publicClient = createPublicClient({
     chain,
@@ -101,7 +104,7 @@ export function getAccount(): Account {
  * GraphQL client for interacting with the subgraph.
  */
 export const graphClient = createClient({
-  url: _graph_url || SUBGRAPH_URL,
+  url: _graph_url,
   exchanges: [fetchExchange],
 })
 
@@ -151,6 +154,6 @@ export async function fetchInBatches(
 const rpcUrl = 'https://odyssey.storyrpc.io'
 export const routerInstance = SwapAlphaRouter.getInstance(
   process.env.JSON_RPC_URL || rpcUrl,
-  _graph_url || SUBGRAPH_URL,
+  { url: _graph_url, auth: _graph_auth },
   ChainId.ODYSSEY,
 )

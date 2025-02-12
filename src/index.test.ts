@@ -27,8 +27,11 @@ import { Trade } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
 import { parseUnits } from 'viem'
 
-const privateKey = '' //process.env.TEST_PRIVATE_KEY as `0x${string}`
-const expectedAddress = '' //process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
+const privateKey = '0x760cf684f8c97028408346466ef6d237e5147f174662ded9098760373f39d92e' //process.env.TEST_PRIVATE_KEY as `0x${string}`
+const subgraph_url =
+  'https://api.goldsky.com/api/private/project_cm3zj9u61wxu901wog58adpjp/subgraphs/mainnet/1.0.0-test/gn' //process.env.TEST_PRIVATE_KEY as `0x${string}`
+const subgraph_auth = 'cm71jl4tfgatz01s0hcxdf1ib' //process.env.TEST_PRIVATE_KEY as `0x${string}`
+const expectedAddress = '0xD2D12058B23B55AA01b271be16C4855CeFa001CE' //process.env.TEST_PUBLIC_ADDRESS as `0x${string}`
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -36,7 +39,7 @@ function sleep(ms: number) {
 
 beforeAll(async () => {
   // 1. Setup: Initialize SDK with Wallet Client using Viem(Private Key)
-  await initClient({ privateKey })
+  await initClient({ privateKey, graph_url: subgraph_url, graph_auth: subgraph_auth })
 
   // 2. Setup: Initialize SDK with Ether Signer
   // const provider = new ethers.JsonRpcProvider(

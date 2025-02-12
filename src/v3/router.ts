@@ -1,7 +1,6 @@
 import { Currency } from '@storyhunt/sdk-core'
 import { getAccountAddress, routerInstance } from '../config'
 import { Trade } from '@storyhunt/v3-sdk'
-import { defaultChainId } from '../constants'
 
 /**
  * Executes a swap using the StoryHunt V3 SDK.
@@ -19,6 +18,8 @@ export async function swapRouterV3(
   tokenOut: string,
   amount: string,
   exactIn: boolean,
+  slippage: number = 50,
+  deadlineInUnix: number = (Math.floor(Date.now() / 1000) + 60) * 50,
 ): Promise<Trade<Currency, Currency, any>[] | Error> {
   try {
     const address = getAccountAddress()
@@ -30,8 +31,9 @@ export async function swapRouterV3(
       tokenOut,
       amount,
       exactIn,
-      chainId: defaultChainId,
       recipient: address,
+      slippageTolerance: slippage,
+      deadline: deadlineInUnix,
     })
     if (!swapData) {
       throw new Error('No trade found')
