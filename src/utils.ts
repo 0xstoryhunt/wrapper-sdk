@@ -1,9 +1,16 @@
 import { Account, Address, Chain, encodeFunctionData, WalletClient } from 'viem'
 import { erc20Abi } from 'viem'
 import { IP, MaxUint256, Token } from '@storyhunt/sdk-core'
-import { ADDRESSES, defaultChain } from './constants'
+import { defaultChain } from './constants'
 import { readContract, writeContract } from 'viem/actions'
-import { getPublicClient, getWriteClient, getAccountAddress, getAccount, executeGraphQuery } from './config'
+import {
+  getPublicClient,
+  getWriteClient,
+  getAccountAddress,
+  getAccount,
+  executeGraphQuery,
+  getAddressConfig,
+} from './config'
 import { GasParams, GraphPoolResponse, PoolInfo, TokenInfo } from './v3/types'
 import { ethers } from 'ethers'
 import { POOL_ABI, POOL_FACTORY_ABI, WIP_ABI } from './v3/abi'
@@ -94,7 +101,7 @@ export const v3RoutertokenApproval = async (token: string, amount: bigint = BigI
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: 'approve',
-    args: [ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS, amount],
+    args: [getAddressConfig().V3_SWAP_ROUTER_CONTRACT_ADDRESS, amount],
     chain: defaultChain,
     value: BigInt(0),
   }
@@ -124,7 +131,7 @@ export const v3PositionManagertokenApproval = async (token: string, amount: bigi
     address: token as `0x${string}`,
     abi: erc20Abi,
     functionName: 'approve',
-    args: [ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS, amount],
+    args: [getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS, amount],
     chain: defaultChain,
     value: BigInt(0),
   }
@@ -174,7 +181,7 @@ export const getPool = async (token0: `0x${string}`, token1: `0x${string}`, fee:
   }
 
   return (await readContract(publicClient, {
-    address: ADDRESSES.V3_POOL_FACTORY_CONTRACT_ADDRESS as `0x${string}`,
+    address: getAddressConfig().V3_POOL_FACTORY_CONTRACT_ADDRESS as `0x${string}`,
     abi: POOL_FACTORY_ABI,
     functionName: 'getPool',
     args: [token0, token1, fee],
@@ -188,14 +195,14 @@ export const getPool = async (token0: `0x${string}`, token1: `0x${string}`, fee:
  * @param token - The address of the token (default is the native IP token).
  * @returns An object containing the balance value and decimals.
  */
-export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
+export const getTokenBalance = async (token = getAddressConfig().TOKENS.IP.id) => {
   const publicClient = getPublicClient()
   const address = getAccountAddress()
   if (!address) {
     throw new Error('No connected address found')
   }
 
-  if (token === ADDRESSES.TOKENS.IP.id) {
+  if (token === getAddressConfig().TOKENS.IP.id) {
     // Native token balance
     const balance = await publicClient.getBalance({
       address: address as Address,
@@ -231,12 +238,12 @@ export const getTokenBalance = async (token = ADDRESSES.TOKENS.IP.id) => {
  * @returns An object containing the token information.
  */
 export async function getTokenInfo(address: `0x${string}`): Promise<TokenInfo> {
-  if (address === ADDRESSES.TOKENS.IP.id)
+  if (address === getAddressConfig().TOKENS.IP.id)
     return {
       decimals: 18,
       symbol: 'IP',
       name: 'IP',
-      address: ADDRESSES.TOKENS.IP.id,
+      address: getAddressConfig().TOKENS.IP.id,
     }
 
   const publicClient = getPublicClient()
@@ -431,7 +438,7 @@ export async function universalSendTransaction(
 export async function wrap(value: bigint) {
   const writeClient = getWriteClient()
   const txHash = await universalWriteContract(writeClient, {
-    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
+    address: getAddressConfig().TOKENS.WIP.id as `0x${string}`,
     abi: WIP_ABI,
     functionName: 'deposit',
     args: [],
@@ -450,7 +457,7 @@ export async function wrap(value: bigint) {
 export async function unwrap(value: bigint) {
   const writeClient = getWriteClient()
   const txHash = await universalWriteContract(writeClient, {
-    address: ADDRESSES.TOKENS.WIP.id as `0x${string}`,
+    address: getAddressConfig().TOKENS.WIP.id as `0x${string}`,
     abi: WIP_ABI,
     functionName: 'withdraw',
     args: [value],
@@ -481,8 +488,8 @@ export async function getUserPoolsV3(): Promise<any> {
 export const getCurrencyInstance = (token: TokenInfo | null) => {
   if (!token) return null
   const currency =
-    token?.address === ADDRESSES.TOKENS.IP.id
-      ? IP.onChain(ADDRESSES.CHAIN_ID)
-      : new Token(ADDRESSES.CHAIN_ID, token?.address, token?.decimals, token?.symbol)
+    token?.address === getAddressConfig().TOKENS.IP.id
+      ? IP.onChain(getAddressConfig().CHAIN_ID)
+      : new Token(getAddressConfig().CHAIN_ID, token?.address, token?.decimals, token?.symbol)
   return { token: currency.wrapped, currency }
 }

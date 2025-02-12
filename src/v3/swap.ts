@@ -1,6 +1,6 @@
 import { SwapRouter, Trade } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
-import { ADDRESSES } from '../constants'
+import { getAddressConfig } from '../config'
 import { getTokenBalance, getAllowence, universalSendTransaction } from '../utils'
 
 import { encodeFunctionData, formatUnits } from 'viem'
@@ -46,7 +46,7 @@ export async function swapV3(
 
     // Check balance
     const tokenBalance = await getTokenBalance(
-      trade.inputAmount.currency.isNative ? ADDRESSES.TOKENS.IP.id : tokenInAddress,
+      trade.inputAmount.currency.isNative ? getAddressConfig().TOKENS.IP.id : tokenInAddress,
     )
     const formattedBalance = Number(formatUnits(tokenBalance.value, tokenBalance.decimals))
     const inputAmount = BigInt(trade.inputAmount.toFixed(0))
@@ -60,7 +60,10 @@ export async function swapV3(
     }
 
     // Check allowance
-    const allowance = await getAllowence(tokenInAddress, ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`)
+    const allowance = await getAllowence(
+      tokenInAddress,
+      getAddressConfig().V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+    )
 
     if (allowance < inputAmount) {
       throw new Error('Insufficient allowance')
@@ -109,9 +112,9 @@ export async function swapV3(
     })
 
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
+      to: getAddressConfig().V3_SWAP_ROUTER_CONTRACT_ADDRESS as `0x${string}`,
       data: finalEncoding,
       value: value,
     }

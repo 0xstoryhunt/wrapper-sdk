@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, WalletClient, PublicClient, Address } from 'viem'
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
 import { Signer } from 'ethers'
-import { defaultChain } from './constants'
+import { ADDRESSES_CONFIG, defaultChain } from './constants'
 import { AnyVariables, createClient, DocumentInput, fetchExchange, Client } from 'urql'
 import { SwapAlphaRouter } from '@storyhunt/smart-order-router'
 import { ChainId } from '@storyhunt/sdk-core'
@@ -16,6 +16,7 @@ let _graph_auth: string = ''
 
 let graphClient: Client | undefined
 let _routerInstance: SwapAlphaRouter | undefined
+let _chainId: ChainId | undefined
 
 /**
  * Initialize clients for the SDK.
@@ -32,13 +33,15 @@ export async function initClient(options: {
   ethersSigner?: Signer
   graph_url: string
   graph_auth: string
+  chainId: ChainId
 }): Promise<void> {
-  const { privateKey, ethersSigner: signer, graph_url, graph_auth } = options
+  const { privateKey, ethersSigner: signer, graph_url, graph_auth, chainId } = options
   const chain = defaultChain
 
   // Set the graph parameters
   _graph_url = graph_url
   _graph_auth = graph_auth
+  _chainId = chainId
 
   // Initialize the public client
   publicClient = createPublicClient({
@@ -198,11 +201,27 @@ export async function fetchInBatches(
  */
 export function getRouterInstance(): SwapAlphaRouter {
   if (!_routerInstance) {
+    if (!_chainId) {
+      throw new Error('Chain ID is not initialized. Call initClient first.')
+    }
     if (!_graph_url || !_graph_auth) {
       throw new Error('Subgraph URL and auth are not initialized. Call initClient first.')
     }
     const rpcUrl = process.env.JSON_RPC_URL || 'https://odyssey.storyrpc.io'
-    _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, ChainId.ODYSSEY)
+    _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, _chainId)
   }
   return _routerInstance
+}
+
+/**
+ * The addresses configuration for the default network.
+ *
+ * @constant
+ * @type {Object}
+ */
+export function getAddressConfig() {
+  if (!_chainId) {
+    throw new Error('Chain ID is not initialized. Call initClient first.')
+  }
+  return ADDRESSES_CONFIG[_chainId]
 }

@@ -9,7 +9,7 @@ import {
   priceToClosestTick,
 } from '@storyhunt/v3-sdk'
 import JSBI from 'jsbi'
-import { ADDRESSES, defaultChain } from '../constants'
+import { defaultChain } from '../constants'
 import {
   getAllowence,
   getCurrencyInstance,
@@ -21,7 +21,7 @@ import {
   universalWriteContract,
 } from '../utils'
 
-import { executeGraphQuery, getAccountAddress, getWriteClient } from '../config'
+import { executeGraphQuery, getAccountAddress, getWriteClient, getAddressConfig } from '../config'
 import { GraphPositionResponse } from './types'
 import { encodeFunctionData, parseUnits, zeroAddress } from 'viem'
 import { NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi'
@@ -63,7 +63,7 @@ export const createPoolV3 = async (token0: string, token1: string, desirePrice: 
 
     // Execute the pool creation and initialization
     const hash = await universalWriteContract(walletClient, {
-      address: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      address: getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
       functionName: 'createAndInitializePoolIfNecessary',
       args: [token0, token1, fee, sqrtPriceX96.toString()],
@@ -81,7 +81,7 @@ export const createPoolV3 = async (token0: string, token1: string, desirePrice: 
  * Adds liquidity to an existing StoryHunt V3 pool.
  *
  * @param token0 - The address of the first token in the pool.
- * select 0x00 from ADDRESSES for native IP token
+ * select 0x00 from getAddressConfig() for native IP token
  * @param token1 - The address of the second token in the pool.
  * @param fee - The fee tier for the pool (500, 3000, or 10000).
  * @param amount0 - The amount of the first token to add.
@@ -149,11 +149,11 @@ export async function addLiquidityV3(
     // Check allowance
     const allowance0Raw = await getAllowence(
       token0Info.address,
-      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
     )
     const allowance1Raw = await getAllowence(
       token1Info.address,
-      ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
     )
 
     // Convert allowances to BigInt for accurate comparison
@@ -226,9 +226,9 @@ export async function addLiquidityV3(
     const integerValue = BigInt(Math.floor(Number(value)))
 
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      to: getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
       data: finalEncoding,
       value: integerValue,
       gasLimit: BigInt(4000000),
@@ -275,10 +275,10 @@ export async function addPositionLiquidityV3(
     const { token0, token1, tickLower, tickUpper, pool } = positionData.data?.positions[0]
 
     const token0Info = await getTokenInfo(
-      (token0.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token0.id) as `0x${string}`,
+      (token0.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token0.id) as `0x${string}`,
     )
     const token1Info = await getTokenInfo(
-      (token1.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token1.id) as `0x${string}`,
+      (token1.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token1.id) as `0x${string}`,
     )
 
     // Check balance
@@ -310,14 +310,14 @@ export async function addPositionLiquidityV3(
     const allowance0Raw = await getAllowence(
       token0.id,
       isStaked
-        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
-        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+        ? (getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
     )
     const allowance1Raw = await getAllowence(
       token1.id,
       isStaked
-        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
-        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+        ? (getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
     )
 
     // Convert allowances to BigInt for accurate comparison
@@ -390,11 +390,11 @@ export async function addPositionLiquidityV3(
     const integerValue = BigInt(Math.floor(Number(value)))
 
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
       to: isStaked
-        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
-        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+        ? (getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
       data: isStaked ? (calldata as `0x${string}`) : finalEncoding,
       value: integerValue,
       gasLimit: BigInt(4000000),
@@ -437,10 +437,10 @@ export async function removeLiquidityV3(
     const { token0, token1, liquidity, tickLower, tickUpper, pool } = positionData.data?.positions[0]
 
     const token0Info = await getTokenInfo(
-      (token0.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token0.id) as `0x${string}`,
+      (token0.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token0.id) as `0x${string}`,
     )
     const token1Info = await getTokenInfo(
-      (token1.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token1.id) as `0x${string}`,
+      (token1.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token1.id) as `0x${string}`,
     )
 
     const isStaked = positionData.data?.positions[0].isStaked
@@ -489,8 +489,8 @@ export async function removeLiquidityV3(
 
     const transaction = {
       to: isStaked
-        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
-        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+        ? (getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
       data: calldata as `0x${string}`,
       value: BigInt(value),
       gasLimit: BigInt(4000000),
@@ -530,10 +530,10 @@ export async function collectFeeV3(positionId: number): Promise<string | ethers.
     const isStaked = positionData.data?.positions[0].isStaked
 
     const token0Info = await getTokenInfo(
-      (token0.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token0.id) as `0x${string}`,
+      (token0.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token0.id) as `0x${string}`,
     )
     const token1Info = await getTokenInfo(
-      (token1.id === ADDRESSES.TOKENS.WIP.id ? ADDRESSES.TOKENS.IP.id : token1.id) as `0x${string}`,
+      (token1.id === getAddressConfig().TOKENS.WIP.id ? getAddressConfig().TOKENS.IP.id : token1.id) as `0x${string}`,
     )
 
     //token instances
@@ -560,8 +560,8 @@ export async function collectFeeV3(positionId: number): Promise<string | ethers.
 
     const transaction = {
       to: isStaked
-        ? (ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
-        : (ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
+        ? (getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`)
+        : (getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`),
       data: calldata as `0x${string}`,
       value: BigInt(value),
       gasLimit: BigInt(4000000),

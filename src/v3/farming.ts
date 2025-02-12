@@ -1,5 +1,5 @@
-import { ADDRESSES, defaultChain } from '../constants'
-import { getAccountAddress, getWriteClient, executeGraphQuery } from '../config'
+import { defaultChain } from '../constants'
+import { getAccountAddress, getWriteClient, executeGraphQuery, getAddressConfig } from '../config'
 import { universalSendTransaction } from '../utils'
 import { ALPHA_HUNTER_V3_ABI, NONFUNGIBLE_POSITION_MANAGER_ABI } from './abi'
 import { encodeFunctionData } from 'viem'
@@ -41,14 +41,14 @@ export async function stakePosition(positionId: number): Promise<string | ethers
     const stakeCalldata = encodeFunctionData({
       abi: NONFUNGIBLE_POSITION_MANAGER_ABI,
       functionName: 'safeTransferFrom',
-      args: [address, ADDRESSES.V3_ALPHAHUNTER_ADDRESS, positionId],
+      args: [address, getAddressConfig().V3_ALPHAHUNTER_ADDRESS, positionId],
     })
 
     // Build the transaction
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
+      to: getAddressConfig().V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS as `0x${string}`,
       data: stakeCalldata,
       gasLimit: BigInt(4000000),
       chain: defaultChain,
@@ -104,9 +104,9 @@ export async function unstakePosition(positionId: number): Promise<string | ethe
 
     // Build the transaction
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`,
+      to: getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`,
       data: unstakeCalldata,
       gasLimit: BigInt(4000000),
       chain: defaultChain,
@@ -171,9 +171,9 @@ export async function harvestPosition(positionId: number): Promise<string | ethe
 
     // Build the transaction
     const transaction = {
-      chainId: ADDRESSES.CHAIN_ID,
+      chainId: getAddressConfig().CHAIN_ID,
       from: address,
-      to: ADDRESSES.V3_ALPHAHUNTER_ADDRESS as `0x${string}`,
+      to: getAddressConfig().V3_ALPHAHUNTER_ADDRESS as `0x${string}`,
       data: multicallCalldata,
       gasLimit: BigInt(4000000),
       chain: defaultChain,

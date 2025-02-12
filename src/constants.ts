@@ -1,6 +1,6 @@
 import CONTRACTS from '@storyhunt/default-list/build/storyhunt-default.constantlist.json' assert { type: 'json' }
-import { defineChain } from 'viem'
-import { Fraction, ChainId } from '@storyhunt/sdk-core'
+import { defineChain, zeroAddress } from 'viem'
+import { Fraction, ChainId, WIP9 } from '@storyhunt/sdk-core'
 import JSBI from 'jsbi'
 
 /**
@@ -110,29 +110,21 @@ type AddressConfig = {
  * @property {string} ODYSSEY.V3_NONFUNGIBLE_POSITION_MANAGER_ADDRESS - Address for the V3 non-fungible position manager.
  * @property {string} ODYSSEY.V3_MULTICALL_ADDRESS - Address for the V3 multicall contract.
  */
-const ADDRESSES_CONFIG: AddressConfig = {
+export const ADDRESSES_CONFIG: AddressConfig = {
   [ChainId.ODYSSEY]: {
     CHAIN_ID: ChainId.ODYSSEY,
-    WIP: '0x1516000000000000000000000000000000000000',
+    WIP: WIP9[ChainId.ODYSSEY].address,
     TOKENS: {
-      IP: {
-        id: '0x0000000000000000000000000000000000000000',
-        name: 'IP',
-        symbol: 'IP',
-        decimals: 18,
-        derivedIP: 1,
-      },
       WIP: {
-        id: '0x1516000000000000000000000000000000000000',
-        name: 'WIP',
+        id: WIP9[ChainId.ODYSSEY].address,
+        name: 'Wrapped IP',
         symbol: 'WIP',
         decimals: 18,
-        derivedIP: 1,
       },
-      USDC: {
-        id: '0xf1815bd50389c46847f0bda824ec8da914045d14',
-        name: 'USDC',
-        symbol: 'USDC',
+      IP: {
+        id: zeroAddress,
+        name: 'IP',
+        symbol: 'IP',
         decimals: 18,
       },
     },
@@ -147,25 +139,18 @@ const ADDRESSES_CONFIG: AddressConfig = {
   },
   [ChainId.AENEID]: {
     CHAIN_ID: ChainId.AENEID,
-    WIP: '0x1514000000000000000000000000000000000000',
+    WIP: WIP9[ChainId.AENEID].address,
     TOKENS: {
-      IP: {
-        id: '0x0000000000000000000000000000000000000000',
-        name: 'IP',
-        symbol: 'IP',
-        decimals: 18,
-        derivedIP: 1,
-      },
       WIP: {
-        id: '0x1514000000000000000000000000000000000000',
-        name: 'WIP',
+        id: WIP9[ChainId.AENEID].address,
+        name: 'Wrapped IP',
         symbol: 'WIP',
         decimals: 18,
       },
-      USDC: {
-        id: '0x8c7C52EabB0FCbcAeBCe2556D9A719d539EA02D8',
-        name: 'USDC',
-        symbol: 'USDC',
+      IP: {
+        id: zeroAddress,
+        name: 'IP',
+        symbol: 'IP',
         decimals: 18,
       },
     },
@@ -180,25 +165,18 @@ const ADDRESSES_CONFIG: AddressConfig = {
   },
   [ChainId.STORY]: {
     CHAIN_ID: ChainId.STORY,
-    WIP: '0x1514000000000000000000000000000000000000',
+    WIP: WIP9[ChainId.STORY].address,
     TOKENS: {
-      IP: {
-        id: '0x0000000000000000000000000000000000000000',
-        name: 'IP',
-        symbol: 'IP',
-        decimals: 18,
-        derivedIP: 1,
-      },
       WIP: {
-        id: '0x1514000000000000000000000000000000000000',
-        name: 'WIP',
+        id: WIP9[ChainId.STORY].address,
+        name: 'Wrapped IP',
         symbol: 'WIP',
         decimals: 18,
       },
-      USDC: {
-        id: '0xF1815bd50389c46847f0Bda824eC8da914045D14',
-        name: 'USDC',
-        symbol: 'USDC',
+      IP: {
+        id: zeroAddress,
+        name: 'IP',
+        symbol: 'IP',
         decimals: 18,
       },
     },
@@ -212,14 +190,6 @@ const ADDRESSES_CONFIG: AddressConfig = {
     STORY_BADGE_NFT_ADDRESS: '',
   },
 }
-
-/**
- * The addresses configuration for the default network.
- *
- * @constant
- * @type {Object}
- */
-export const ADDRESSES = ADDRESSES_CONFIG[ChainId.STORY]
 
 /**
  * Allowed price impact for warning states.

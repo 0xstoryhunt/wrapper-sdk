@@ -43,8 +43,8 @@ export async function swapRouterV3(
     const tokenOutInfo = await getTokenInfo(tokenOut as `0x${string}`)
 
     const currencyIn =
-      tokenIn === ADDRESSES.TOKENS.IP.id
-        ? IP.onChain(ADDRESSES.CHAIN_ID)
+      tokenIn === getAddressConfig().TOKENS.IP.id
+        ? IP.onChain(getAddressConfig().CHAIN_ID)
         : new Token(
             defaultChainId,
             tokenIn as `0x${string}`,
@@ -54,8 +54,8 @@ export async function swapRouterV3(
           )
 
     const currencyOut =
-      tokenOut === ADDRESSES.TOKENS.IP.id
-        ? IP.onChain(ADDRESSES.CHAIN_ID)
+      tokenOut === getAddressConfig().TOKENS.IP.id
+        ? IP.onChain(getAddressConfig().CHAIN_ID)
         : new Token(
             defaultChainId,
             tokenOut as `0x${string}`,
