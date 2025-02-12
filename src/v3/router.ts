@@ -1,5 +1,5 @@
 import { Currency } from '@storyhunt/sdk-core'
-import { getAccountAddress, routerInstance } from '../config'
+import { getAccountAddress, getRouterInstance } from '../config'
 import { Trade } from '@storyhunt/v3-sdk'
 
 /**
@@ -18,22 +18,20 @@ export async function swapRouterV3(
   tokenOut: string,
   amount: string,
   exactIn: boolean,
-  slippage: number = 50,
-  deadlineInUnix: number = (Math.floor(Date.now() / 1000) + 60) * 50,
 ): Promise<Trade<Currency, Currency, any>[] | Error> {
   try {
     const address = getAccountAddress()
     if (!address) {
       throw new Error('No connected address found')
     }
+
+    const routerInstance = getRouterInstance()
     const swapData = await routerInstance.getSwapRouteData({
       tokenIn,
       tokenOut,
       amount,
       exactIn,
       recipient: address,
-      slippageTolerance: slippage,
-      deadline: deadlineInUnix,
     })
     if (!swapData) {
       throw new Error('No trade found')

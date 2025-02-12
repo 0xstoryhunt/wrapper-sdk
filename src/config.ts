@@ -2,7 +2,7 @@ import { createPublicClient, createWalletClient, http, WalletClient, PublicClien
 import { privateKeyToAccount, toAccount, type Account } from 'viem/accounts'
 import { Signer } from 'ethers'
 import { defaultChain } from './constants'
-import { AnyVariables, createClient, DocumentInput, fetchExchange } from 'urql'
+import { AnyVariables, createClient, DocumentInput, fetchExchange, Client } from 'urql'
 import { SwapAlphaRouter } from '@storyhunt/smart-order-router'
 import { ChainId } from '@storyhunt/sdk-core'
 
@@ -10,8 +10,12 @@ let publicClient: PublicClient | undefined
 let walletClient: WalletClient | undefined
 let ethersSigner: Signer | undefined
 let accountAddress: string | undefined
+
 let _graph_url: string = ''
 let _graph_auth: string = ''
+
+let graphClient: Client | undefined
+let _routerInstance: SwapAlphaRouter | undefined
 
 /**
  * Initialize clients for the SDK.
@@ -19,6 +23,8 @@ let _graph_auth: string = ''
  * @param options - Initialization options.
  * @param options.privateKey - Optional private key. If present, viem walletClient is used for writes.
  * @param options.ethersSigner - Optional ethers.js Signer. Used if no privateKey is provided.
+ * @param options.graph_url - The subgraph URL.
+ * @param options.graph_auth - The subgraph auth token.
  * @returns A promise that resolves when the clients are initialized.
  */
 export async function initClient(options: {
@@ -29,14 +35,18 @@ export async function initClient(options: {
 }): Promise<void> {
   const { privateKey, ethersSigner: signer, graph_url, graph_auth } = options
   const chain = defaultChain
-  _graph_url = graph_url ?? undefined
-  _graph_auth = graph_auth ?? undefined
 
+  // Set the graph parameters
+  _graph_url = graph_url
+  _graph_auth = graph_auth
+
+  // Initialize the public client
   publicClient = createPublicClient({
     chain,
     transport: http(chain.rpcUrls.default.http[0]),
   })
 
+  // Initialize the write client (either via private key or ethers signer)
   if (privateKey) {
     const account: Account = privateKeyToAccount(privateKey as `0x${string}`)
     walletClient = createWalletClient({
@@ -50,9 +60,20 @@ export async function initClient(options: {
     const address = await signer.getAddress()
     accountAddress = address.toLowerCase()
   } else {
-    // No privateKey or ethersSigner means read-only
+    // Read-only: no write client available
     accountAddress = undefined
   }
+
+  // Initialize the GraphQL client now that _graph_url is set
+  graphClient = createClient({
+    url: _graph_url,
+    exchanges: [fetchExchange],
+  })
+
+  // Initialize the router instance with the updated graph parameters.
+  // Use the environment variable if provided, or fall back to the default rpcUrl.
+  const rpcUrl = process.env.JSON_RPC_URL || 'https://odyssey.storyrpc.io'
+  _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, ChainId.ODYSSEY)
 }
 
 /**
@@ -63,7 +84,7 @@ export async function initClient(options: {
  */
 export function getPublicClient(): PublicClient {
   if (!publicClient) {
-    throw new Error('Public client not initialized. Call initClients first.')
+    throw new Error('Public client not initialized. Call initClient first.')
   }
   return publicClient
 }
@@ -79,7 +100,7 @@ export function getPublicClient(): PublicClient {
 export function getWriteClient(): WalletClient | Signer {
   if (walletClient) return walletClient
   if (ethersSigner) return ethersSigner
-  throw new Error('No write client available. Provide privateKey or ethersSigner in initClients.')
+  throw new Error('No write client available. Provide privateKey or ethersSigner in initClient.')
 }
 
 /**
@@ -101,12 +122,23 @@ export function getAccount(): Account {
 }
 
 /**
- * GraphQL client for interacting with the subgraph.
+ * Lazy getter for the GraphQL client.
+ *
+ * @returns The initialized GraphQL client.
+ * @throws If the graph client is not initialized.
  */
-export const graphClient = createClient({
-  url: _graph_url,
-  exchanges: [fetchExchange],
-})
+export function getGraphClient(): Client {
+  if (!graphClient) {
+    if (!_graph_url) {
+      throw new Error('Subgraph URL is not initialized. Call initClient first.')
+    }
+    graphClient = createClient({
+      url: _graph_url,
+      exchanges: [fetchExchange],
+    })
+  }
+  return graphClient
+}
 
 /**
  * Execute a GraphQL query using the graph client.
@@ -116,16 +148,24 @@ export const graphClient = createClient({
  * @returns A promise that resolves with the query result.
  */
 export async function executeGraphQuery<T>(query: DocumentInput<T, AnyVariables>, variables: Record<string, any> = {}) {
-  return await graphClient.query<T>(query, variables, { requestPolicy: 'network-only' }).toPromise()
+  return await getGraphClient().query<T>(query, variables, { requestPolicy: 'network-only' }).toPromise()
 }
 
+/**
+ * Fetch multiple queries in batches.
+ *
+ * @param queries - List of query parameters (query and variables).
+ * @param batchSize - Number of queries to fetch in each batch.
+ * @param delayMs - Delay in milliseconds between batches.
+ * @returns A promise that resolves with an array of results.
+ */
 export async function fetchInBatches(
   queries: {
     query: any
     variables: { [key: string]: any }
-  }[], // List of query parameters
-  batchSize: number = 50, // Number of queries to fetch in each batch
-  delayMs: number = 10000, // Delay between batches
+  }[],
+  batchSize: number = 50,
+  delayMs: number = 10000,
 ): Promise<{ query: any; variables: any; result: any }[]> {
   const results: { query: any; variables: any; result: any }[] = []
 
@@ -150,10 +190,19 @@ export async function fetchInBatches(
   return results
 }
 
-/** QUOTE SERVICE  */
-const rpcUrl = 'https://odyssey.storyrpc.io'
-export const routerInstance = SwapAlphaRouter.getInstance(
-  process.env.JSON_RPC_URL || rpcUrl,
-  { url: _graph_url, auth: _graph_auth },
-  ChainId.ODYSSEY,
-)
+/**
+ * Lazy getter for the router instance.
+ *
+ * @returns The initialized SwapAlphaRouter instance.
+ * @throws If the subgraph parameters are not initialized.
+ */
+export function getRouterInstance(): SwapAlphaRouter {
+  if (!_routerInstance) {
+    if (!_graph_url || !_graph_auth) {
+      throw new Error('Subgraph URL and auth are not initialized. Call initClient first.')
+    }
+    const rpcUrl = process.env.JSON_RPC_URL || 'https://odyssey.storyrpc.io'
+    _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, ChainId.ODYSSEY)
+  }
+  return _routerInstance
+}
