@@ -13,6 +13,7 @@ let accountAddress: string | undefined
 
 let _graph_url: string = ''
 let _graph_auth: string = ''
+let _json_rpc: string = ''
 
 let graphClient: Client | undefined
 let _routerInstance: SwapAlphaRouter | undefined
@@ -34,14 +35,16 @@ export async function initClient(options: {
   graph_url: string
   graph_auth: string
   chainId: ChainId
+  jsonRPC: string
 }): Promise<void> {
-  const { privateKey, ethersSigner: signer, graph_url, graph_auth, chainId } = options
+  const { privateKey, ethersSigner: signer, graph_url, graph_auth, chainId, jsonRPC } = options
   const chain = defaultChain
 
   // Set the graph parameters
   _graph_url = graph_url
   _graph_auth = graph_auth
   _chainId = chainId
+  _json_rpc = jsonRPC
 
   // Initialize the public client
   publicClient = createPublicClient({
@@ -75,8 +78,7 @@ export async function initClient(options: {
 
   // Initialize the router instance with the updated graph parameters.
   // Use the environment variable if provided, or fall back to the default rpcUrl.
-  const rpcUrl = process.env.JSON_RPC_URL || 'https://odyssey.storyrpc.io'
-  _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, ChainId.ODYSSEY)
+  _routerInstance = SwapAlphaRouter.getInstance(_json_rpc, { url: _graph_url, auth: _graph_auth }, _chainId)
 }
 
 /**
@@ -201,14 +203,7 @@ export async function fetchInBatches(
  */
 export function getRouterInstance(): SwapAlphaRouter {
   if (!_routerInstance) {
-    if (!_chainId) {
-      throw new Error('Chain ID is not initialized. Call initClient first.')
-    }
-    if (!_graph_url || !_graph_auth) {
-      throw new Error('Subgraph URL and auth are not initialized. Call initClient first.')
-    }
-    const rpcUrl = process.env.JSON_RPC_URL || 'https://odyssey.storyrpc.io'
-    _routerInstance = SwapAlphaRouter.getInstance(rpcUrl, { url: _graph_url, auth: _graph_auth }, _chainId)
+    throw new Error('Router instance is not initialized. Call initClient first.')
   }
   return _routerInstance
 }

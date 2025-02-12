@@ -26,6 +26,7 @@ export async function swapRouterV3(
     }
 
     const routerInstance = getRouterInstance()
+
     const swapData = await routerInstance.getSwapRouteData({
       tokenIn,
       tokenOut,
