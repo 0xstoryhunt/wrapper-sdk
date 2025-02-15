@@ -23,8 +23,7 @@ import {
 // import { defaultChain } from '../../src';
 // import { ethers } from 'ethers';
 
-import { IP, Token, TradeType } from '@storyhunt/sdk-core'
-import { Trade } from '@storyhunt/v3-sdk'
+import { SwapRoute } from '@storyhunt/smart-order-router'
 import JSBI from 'jsbi'
 // import { parseUnits } from 'viem'
 
@@ -68,7 +67,7 @@ describe('routing', () => {
     const tokenOut = '0xF1815bd50389c46847f0Bda824eC8da914045D14' // USDC token
     const amount = '1' // 1 WIP
 
-    const routes = await swapRouterV3(tokenIn, tokenOut, amount, false)
+    const routes = await swapRouterV3(tokenIn, tokenOut, amount, false, 50, Date.now() + 1000 * 60 * 10) // 0.05% slippage, 10 minutes deadline
     console.log('Routes: ', routes)
     expect(routes).toBeDefined()
   }, 15000)
@@ -101,26 +100,26 @@ describe('swap', () => {
     const amountIn = '0.01' //  1 WIP
 
     // Get a route for the swap
-    const routes: Trade<IP | Token, IP | Token, TradeType>[] | Error = await swapRouterV3(
+    const data: SwapRoute<any> | Error = await swapRouterV3(
       tokenIn,
       tokenOut,
       amountIn,
       true,
+      50,
+      Date.now() + 1000 * 60 * 10,
     )
-    if (routes instanceof Error) {
-      console.log('[Route/error]', routes)
+    if (data instanceof Error) {
+      console.log('[Route/error]', data)
       return
     } else {
-      expect(routes).toBeDefined()
-      expect(Array.isArray(routes)).toBe(true)
-      expect(routes.length).toBeGreaterThan(0)
+      expect(data).toBeDefined()
     }
     // Take the best trade (first one returned)
-    const bestTrade = routes[0]
+    const bestTrade = data.trade
     expect(bestTrade).toBeDefined()
 
     // Execute the swap
-    const swapResult = await swapV3(bestTrade)
+    const swapResult = await swapV3(data)
     //console.log("swapResult" ,swapResult)
     expect(swapResult).toBeDefined()
     // If successful, this should be a transaction hash (a string)
@@ -134,26 +133,26 @@ describe('swap', () => {
     const amountIn = '0.01' //  1 WIP
 
     // Get a route for the swap
-    const routes: Trade<IP | Token, IP | Token, TradeType>[] | Error = await swapRouterV3(
+    const quotation: SwapRoute<any> | Error = await swapRouterV3(
       tokenIn,
       tokenOut,
       amountIn,
       true,
+      50,
+      Date.now() + 1000 * 60 * 10,
     )
-    if (routes instanceof Error) {
-      console.log('[Route/error]', routes)
+    if (quotation instanceof Error) {
+      console.log('[Route/error]', quotation)
       return
     } else {
-      expect(routes).toBeDefined()
-      expect(Array.isArray(routes)).toBe(true)
-      expect(routes.length).toBeGreaterThan(0)
+      expect(quotation).toBeDefined()
     }
     // Take the best trade (first one returned)
-    const bestTrade = routes[0]
+    const bestTrade = quotation.trade
     expect(bestTrade).toBeDefined()
 
     // Execute the swap
-    const swapResult = await swapV3(bestTrade)
+    const swapResult = await swapV3(quotation)
     //console.log("swapResult" ,swapResult)
     expect(swapResult).toBeDefined()
     // If successful, this should be a transaction hash (a string)
