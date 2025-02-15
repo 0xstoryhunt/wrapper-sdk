@@ -52,6 +52,26 @@ const chains = {
     },
     testnet: true,
   }),
+  STORY: defineChain({
+    id: 1514,
+    name: 'Story Mainnet',
+    nativeCurrency: { name: 'IP', symbol: 'IP', decimals: 18 },
+    rpcUrls: {
+      default: {
+        http: ['https://mainnet.storyrpc.io'],
+      },
+      public: {
+        http: ['https://mainnet.storyrpc.io'],
+      },
+    },
+    blockExplorers: {
+      default: {
+        name: 'storyscan',
+        url: 'https://storyscan.xyz/',
+      },
+    },
+    testnet: true,
+  }),
 }
 
 /**
@@ -60,7 +80,7 @@ const chains = {
  * @constant
  * @type {Object}
  */
-export const defaultChain = chains['ODYSSEY']
+export const defaultChain = chains['STORY']
 
 /**
  * The ID of the default blockchain network.
